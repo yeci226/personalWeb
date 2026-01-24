@@ -11,6 +11,7 @@ import {
   Clock,
 } from "lucide-react";
 import React, { useEffect, useState, useMemo, memo } from "react";
+import Link from "next/link";
 import { DiscordStatus, StatusDot } from "@/components/DiscordStatus";
 
 // Types
@@ -302,6 +303,21 @@ export default function Home() {
                 <p className="description">
                   熱衷於開發 Discord Bot、網頁以及探索新技術。
                 </p>
+                <div className="hero-actions">
+                  <Link href="/bots" className="btn-primary">
+                    <Terminal size={18} />
+                    <span>查看我的機器人</span>
+                  </Link>
+                  <a
+                    href="https://github.com/yeci226"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn-secondary"
+                  >
+                    <Github size={18} />
+                    <span>GitHub</span>
+                  </a>
+                </div>
               </motion.div>
             )}
           </AnimatePresence>
