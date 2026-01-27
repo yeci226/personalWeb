@@ -9,6 +9,7 @@ import {
   Book,
   MapPin,
   Clock,
+  Gamepad2,
 } from "lucide-react";
 import React, { useEffect, useState, useMemo, memo } from "react";
 import Link from "next/link";
@@ -308,6 +309,15 @@ export default function Home() {
                     <Terminal size={18} />
                     <span>查看我的機器人</span>
                   </Link>
+                  <a
+                    href="https://big-two-eosin.vercel.app/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn-secondary"
+                  >
+                    <Gamepad2 size={18} />
+                    <span>玩大老二</span>
+                  </a>
                   <a
                     href="https://github.com/yeci226"
                     target="_blank"
