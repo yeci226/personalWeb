@@ -35,12 +35,12 @@
 
 .showcase-grid {
   display: grid;
-  grid-template-columns: 360px 1fr; /* 增加寬度以適應個人資料卡 */
+  grid-template-columns: 380px 1fr;
   gap: 0;
-  background: rgba(13, 17, 23, 0.4);
-  backdrop-filter: blur(24px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 32px;
+  background: radial-gradient(circle at 30% 20%, rgba(56, 189, 248, 0.08), rgba(13, 17, 23, 0.72));
+  backdrop-filter: blur(30px);
+  border: 1px solid rgba(203, 213, 225, 0.16);
+  border-radius: 26px;
   overflow: hidden;
   width: 100%;
   max-width: 1600px;
@@ -50,8 +50,8 @@
 
 .bot-sidebar {
   padding: 30px;
-  border-right: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(0, 0, 0, 0.2);
+  border-right: 1px solid rgba(148, 163, 184, 0.2);
+  background: linear-gradient(180deg, rgba(2, 6, 23, 0.44), rgba(15, 23, 42, 0.2));
   overflow-y: auto;
   height: 100%; /* 確保佔滿父容器高度 */
 }
@@ -82,6 +82,37 @@
   margin-bottom: 20px;
 }
 
+.overview-panel {
+  margin-bottom: 18px;
+  padding: 14px;
+  border-radius: 14px;
+  background: linear-gradient(145deg, rgba(17, 24, 39, 0.85), rgba(30, 41, 59, 0.6));
+  border: 1px solid rgba(88, 166, 255, 0.2);
+}
+
+.overview-title {
+  margin: 0 0 12px 0;
+  font-size: 0.78rem;
+  color: #9ecbff;
+  letter-spacing: 0.06em;
+}
+
+.overview-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.overview-item {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 8px;
+  border-radius: 10px;
+  background: rgba(2, 6, 23, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
 .bot-list {
   display: flex;
   flex-direction: column;
@@ -93,8 +124,8 @@
   flex-direction: column;
   padding: 0;
   border-radius: 16px;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: linear-gradient(160deg, rgba(15, 23, 42, 0.9), rgba(30, 41, 59, 0.65));
+  border: 1px solid rgba(148, 163, 184, 0.18);
   cursor: pointer;
   text-align: left;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -104,21 +135,20 @@
 }
 
 .bot-item.active {
-  background: rgba(88, 166, 255, 0.05);
-  border-color: rgba(88, 166, 255, 0.3);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  background: linear-gradient(155deg, rgba(14, 116, 144, 0.4), rgba(30, 64, 175, 0.18));
+  border-color: rgba(125, 211, 252, 0.55);
+  box-shadow: 0 10px 30px rgba(2, 6, 23, 0.35);
 }
 
 .bot-item:hover:not(.active) {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.1);
+  border-color: rgba(148, 163, 184, 0.3);
   transform: translateY(-2px);
 }
 
 .bot-card-banner {
   height: 100px;
   width: 100%;
-  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  background: linear-gradient(135deg, #334155 0%, #0f172a 100%);
   position: relative;
 }
 
@@ -175,13 +205,13 @@
   flex-direction: column;
   height: 100%;
   min-height: 0; /* 防止 flex 項目溢出 */
-  background: rgba(13, 17, 23, 0.2);
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.2), rgba(2, 6, 23, 0.28));
 }
 
 .console-header {
   flex-shrink: 0; /* 防止頭部被壓縮 */
-  padding: 20px 30px 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 22px 30px 0;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.16);
 }
 
 .console-tabs {
@@ -189,11 +219,47 @@
   gap: 24px;
 }
 
+.selected-metrics-bar {
+  margin-bottom: 18px;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.selected-metric-card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.8), rgba(30, 41, 59, 0.6));
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.metric-label {
+  font-size: 0.74rem;
+  color: #8ea3b7;
+}
+
+.metric-value {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #f0f6fc;
+}
+
+.metric-delta {
+  font-size: 0.74rem;
+  color: #63e6be;
+}
+
 .console-tab {
   padding-bottom: 16px;
   background: none;
   border: none;
-  color: #8b949e;
+  color: #9ca3af;
   font-weight: 600;
   font-size: 0.9rem;
   cursor: pointer;
@@ -202,7 +268,7 @@
 }
 
 .console-tab.active {
-  color: #58a6ff;
+  color: #7dd3fc;
 }
 
 .console-tab.active::after {
@@ -212,8 +278,8 @@
   left: 0;
   width: 100%;
   height: 2px;
-  background: #58a6ff;
-  box-shadow: 0 0 10px #58a6ff;
+  background: #7dd3fc;
+  box-shadow: 0 0 10px rgba(125, 211, 252, 0.7);
 }
 
 .console-body {
@@ -253,8 +319,8 @@
 }
 
 .command-item {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: linear-gradient(145deg, rgba(2, 6, 23, 0.7), rgba(30, 41, 59, 0.45));
+  border: 1px solid rgba(148, 163, 184, 0.16);
   border-radius: 16px;
   padding: 20px;
 }
@@ -269,12 +335,12 @@
 .command-icon {
   width: 28px;
   height: 28px;
-  background: rgba(88, 166, 255, 0.1);
+  background: rgba(56, 189, 248, 0.16);
   border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #58a6ff;
+  color: #7dd3fc;
 }
 
 .command-title-group {
@@ -424,7 +490,7 @@
 }
 
 .command-showcase-image:hover {
-  border-color: rgba(88, 166, 255, 0.3);
+  border-color: rgba(125, 211, 252, 0.45);
 }
 
 .command-showcase-image img {
@@ -537,7 +603,7 @@
 }
 
 .usage-code-container {
-  background: rgba(0, 0, 0, 0.3);
+  background: rgba(15, 23, 42, 0.52);
   padding: 12px 16px;
   border-radius: 10px;
   display: flex;
@@ -552,8 +618,8 @@
 }
 
 .clickable-copy:hover {
-  background: rgba(88, 166, 255, 0.05);
-  border-color: rgba(88, 166, 255, 0.2);
+  background: rgba(14, 116, 144, 0.12);
+  border-color: rgba(125, 211, 252, 0.28);
 }
 
 .usage-code {
@@ -602,5 +668,10 @@
   }
   .bot-item {
     min-width: 200px;
+  }
+
+  .overview-grid,
+  .selected-metrics-bar {
+    grid-template-columns: 1fr;
   }
 }
