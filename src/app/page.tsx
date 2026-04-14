@@ -262,8 +262,52 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── SCENE 3: PLACEHOLDER ──────────────────── */}
-      <section className="scene scene-projects" />
+      {/* ── SCENE 3: PROJECTS ─────────────────────── */}
+      <section className="scene scene-projects">
+        <div className="sc-label">
+          <div className="sc-label-line" />
+          <div className="sc-label-text">精選專案</div>
+        </div>
+        <div className="sc-counter">03 / 04</div>
+
+        <div className="s3-inner">
+          <div className="s3-head">
+            <div className="s3-head-line" />
+            <div className="s3-head-text">精選專案</div>
+          </div>
+
+          <div className="s3-repos">
+            {projectRepos.length > 0
+              ? projectRepos.map((repo) => (
+                  <a
+                    key={repo.id}
+                    href={repo.html_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="s3-repo"
+                  >
+                    <div className="s3-repo-name">{repo.name}</div>
+                    <div className="s3-repo-desc">
+                      {repo.description || '暫無描述'}
+                    </div>
+                    <div className="s3-repo-footer">
+                      <div
+                        className="s3-lang-dot"
+                        style={{ backgroundColor: getLangColor(repo.language) }}
+                      />
+                      {repo.language ?? 'Other'} · ★ {repo.stargazers_count}
+                    </div>
+                  </a>
+                ))
+              : Array.from({ length: 4 }).map((_, i) => (
+                  <div key={i} className="s3-repo">
+                    <div className="s3-repo-name" style={{ background: '#1a1a1a', height: 14, borderRadius: 4 }} />
+                    <div className="s3-repo-desc" style={{ background: '#161616', height: 32, borderRadius: 4, marginTop: 4 }} />
+                  </div>
+                ))}
+          </div>
+        </div>
+      </section>
 
       {/* ── SCENE 4: PLACEHOLDER ──────────────────── */}
       <section className="scene scene-contact" />
