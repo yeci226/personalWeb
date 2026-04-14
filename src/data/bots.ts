@@ -634,29 +634,13 @@ export const BOTS_DATA: BotData[] = [
       channelName: 'hsr-bot-demo',
       rounds: [
         {
-          userCommand: '/character 角色: 卡芙卡',
-          botEmbed: {
-            title: '⚡ 卡芙卡 — 星際巡航列車',
-            description: '命途：虛無 · 屬性：雷',
-            fields: [
-              { name: '稀有度', value: '5 星' },
-              { name: '武器', value: '突擊槍' },
-              { name: '陣營', value: '星際巡航列車' },
-            ],
-          },
+          userCommand: '/個人簡介',
+          botImageUrl: 'bots/hsr/profile.png',
         },
         {
-          userCommand: '/relic recommend 角色: 卡芙卡',
-          botEmbed: {
-            title: '🎯 遺器推薦',
-            description: '卡芙卡最佳化遺器套裝',
-            fields: [
-              { name: '4件套', value: '囚徒深淵' },
-              { name: '2件套', value: '太空密封站' },
-              { name: '主詞條', value: '攻擊% / 速度' },
-            ],
-          },
-        },
+          userCommand: '/忘卻之庭紀錄 模式: 異相仲裁',
+          botImageUrl: 'bots/hsr/ano.png',
+        }
       ],
     },
     categories: [

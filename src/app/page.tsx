@@ -212,6 +212,11 @@ export default function Home() {
   const [botIndex, setBotIndex] = useState(0);
   const [animKey, setAnimKey] = useState(0);
   const mainRef = useRef<HTMLElement>(null);
+  const [heroIn, setHeroIn] = useState(false);
+
+  useEffect(() => {
+    setTimeout(() => setHeroIn(true), 80);
+  }, []);
 
   // Fetch GitHub repos
   useEffect(() => {
@@ -241,7 +246,7 @@ export default function Home() {
     <main ref={mainRef} style={{ position: 'relative' }}>
 
       {/* ── SCENE 1: HERO ─────────────────────────── */}
-      <section className="scene scene-hero">
+      <section className={"scene scene-hero" + (heroIn ? " scene-hero-in" : "") }>
         <div className="sc-label">
           <div className="sc-label-line" />
           <div className="sc-label-text">yeci226</div>
@@ -402,8 +407,8 @@ export default function Home() {
           <div className="s4-eyebrow">Get in touch</div>
 
           <div className="s4-title">
-            來找<span>我</span>聊聊。
-          </div>
+  您可以透過以下方式 <span>與我聯絡</span>
+</div>
 
           <div className="s4-icons">
             <a
@@ -419,7 +424,7 @@ export default function Home() {
             </a>
 
             <a
-              href="https://discord.com/users/yeci226"
+              href="https://discord.com/users/283946584461410305"
               target="_blank"
               rel="noopener noreferrer"
               className="s4-icon-btn ghost"
@@ -431,7 +436,7 @@ export default function Home() {
             </a>
 
             <a
-              href="mailto:yeci226@gmail.com"
+              href="mailto:shawnyin226@gmail.com"
               className="s4-icon-btn ghost"
               data-label="Email"
             >

@@ -47,12 +47,9 @@ export default function FloatingGif() {
 
     const onMouseMove = (e: MouseEvent) => {
       if (!dragging.current) return;
-      const parent = el.parentElement;
-      if (!parent) return;
-      const parentRect = parent.getBoundingClientRect();
       setPos({
-        left: e.clientX - parentRect.left - offset.current.x,
-        top: e.clientY - parentRect.top + parent.scrollTop - offset.current.y,
+        left: e.clientX + window.scrollX - offset.current.x,
+        top: e.clientY + window.scrollY - offset.current.y,
       });
     };
 
