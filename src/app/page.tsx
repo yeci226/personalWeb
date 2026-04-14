@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useRef, useCallback } from 'react';
+import { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import Link from 'next/link';
 import FloatingGif from '@/components/FloatingGif';
 import { BOTS_DATA, BotData } from '@/data/bots';
@@ -32,6 +32,9 @@ function getLangColor(lang: string | null): string {
 // ── Showcase bots (only those with demo data) ──────
 const SHOWCASE_BOTS: BotData[] = BOTS_DATA.filter((b) => b.demo).slice(0, 3);
 
+// ── Bot IDs for filtering projects ─────────────────
+const BOT_IDS = new Set(BOTS_DATA.map((b) => b.id));
+
 export default function Home() {
   const [repos, setRepos] = useState<Repo[]>([]);
   const [botIndex, setBotIndex] = useState(0);
@@ -43,14 +46,14 @@ export default function Home() {
     fetch('/api/github')
       .then((r) => r.json())
       .then((data) => { if (data.repos) setRepos(data.repos); })
-      .catch(() => {});
+      .catch((err) => console.error('[GitHub fetch]', err));
   }, []);
 
   // Filter out bot repos from projects scene
-  const botIds = new Set(BOTS_DATA.map((b) => b.id));
-  const projectRepos = repos
-    .filter((r) => !botIds.has(r.name.toLowerCase()))
-    .slice(0, 6);
+  const projectRepos = useMemo(
+    () => repos.filter((r) => !BOT_IDS.has(r.name.toLowerCase())).slice(0, 6),
+    [repos],
+  );
 
   const switchBot = useCallback((idx: number) => {
     setBotIndex(idx);
