@@ -3,6 +3,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { CHAR_GIFS } from '@/data/charGifs';
 
+const GIF_SIZE = 100;
+
 export default function FloatingGif() {
   const ref = useRef<HTMLDivElement>(null);
   const [src, setSrc] = useState<string | null>(null);
@@ -13,18 +15,17 @@ export default function FloatingGif() {
   useEffect(() => {
     if (CHAR_GIFS.length === 0) return;
 
-    // Pick a random GIF
     const gif = CHAR_GIFS[Math.floor(Math.random() * CHAR_GIFS.length)];
     setSrc(gif);
 
-    // Pick a random position within the full page height
-    const pageH = document.documentElement.scrollHeight;
-    const pageW = document.documentElement.scrollWidth;
-    const gifW = 100;
-    const gifH = 100;
+    // Use parent element dimensions for consistent coordinate system
+    const parent = ref.current?.parentElement;
+    const parentW = parent ? parent.scrollWidth : window.innerWidth;
+    const parentH = parent ? parent.scrollHeight : window.innerHeight;
+
     setPos({
-      top: Math.floor(Math.random() * (pageH - gifH - 40)) + 20,
-      left: Math.floor(Math.random() * (pageW - gifW - 40)) + 20,
+      top: Math.floor(Math.random() * (parentH - GIF_SIZE - 40)) + 20,
+      left: Math.floor(Math.random() * (parentW - GIF_SIZE - 40)) + 20,
     });
   }, []);
 
@@ -34,9 +35,10 @@ export default function FloatingGif() {
 
     const onMouseDown = (e: MouseEvent) => {
       dragging.current = true;
+      const rect = el.getBoundingClientRect();
       offset.current = {
-        x: e.clientX - el.getBoundingClientRect().left,
-        y: e.clientY - el.getBoundingClientRect().top,
+        x: e.clientX - rect.left,
+        y: e.clientY - rect.top,
       };
       e.preventDefault();
     };
@@ -45,10 +47,10 @@ export default function FloatingGif() {
       if (!dragging.current) return;
       const parent = el.parentElement;
       if (!parent) return;
-      const rect = parent.getBoundingClientRect();
+      const parentRect = parent.getBoundingClientRect();
       setPos({
-        left: e.clientX - rect.left - offset.current.x,
-        top: e.clientY - rect.top + parent.scrollTop - offset.current.y,
+        left: e.clientX - parentRect.left - offset.current.x,
+        top: e.clientY - parentRect.top + parent.scrollTop - offset.current.y,
       });
     };
 
@@ -62,7 +64,7 @@ export default function FloatingGif() {
       document.removeEventListener('mousemove', onMouseMove);
       document.removeEventListener('mouseup', onMouseUp);
     };
-  }, [src]);
+  }, []);
 
   if (!src) return null;
 
@@ -73,7 +75,7 @@ export default function FloatingGif() {
       style={{ top: pos.top, left: pos.left }}
     >
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={src} alt="character" />
+      <img src={src} alt="character" width={GIF_SIZE} />
     </div>
   );
 }
