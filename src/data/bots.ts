@@ -71,7 +71,7 @@ const BOT_ORDER = [
   "animeguess",
 ];
 
-const BOTS_DATA: BotData[] = [
+export const BOTS_DATA: BotData[] = [
   {
     id: "endfield",
     name: "終末地小助手",
