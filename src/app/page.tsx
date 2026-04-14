@@ -33,7 +33,7 @@ function getLangColor(lang: string | null): string {
 const SHOWCASE_BOTS: BotData[] = BOTS_DATA.filter((b) => b.demo).slice(0, 3);
 
 // ── Bot IDs for filtering projects ─────────────────
-const BOT_IDS = new Set(BOTS_DATA.map((b) => b.id));
+const BOT_IDS = new Set(BOTS_DATA.map((b) => b.id.toLowerCase()));
 
 export default function Home() {
   const [repos, setRepos] = useState<Repo[]>([]);
@@ -139,8 +139,8 @@ export default function Home() {
             <p className="s2-desc">{currentBot.description}</p>
 
             <div className="s2-btns">
-              <button className="s2-btn-primary">邀請至伺服器</button>
-              <button className="s2-btn-ghost">指令列表</button>
+              <Link href="/bots" className="s2-btn-primary">邀請至伺服器</Link>
+              <Link href="/bots" className="s2-btn-ghost">指令列表</Link>
             </div>
           </div>
         )}
