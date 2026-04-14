@@ -24,12 +24,34 @@ export interface CommandCategory {
   commands: Command[];
 }
 
+export interface BotDemoField {
+  name: string;
+  value: string;
+}
+
+export interface BotDemoEmbed {
+  title: string;
+  description: string;
+  fields: BotDemoField[];
+}
+
+export interface BotDemoRound {
+  userCommand: string;
+  botEmbed: BotDemoEmbed;
+}
+
+export interface BotDemo {
+  channelName: string;
+  rounds: BotDemoRound[];
+}
+
 export interface BotData {
   id: string;
   name: string;
   icon: string;
   banner?: string;
   description: string;
+  demo?: BotDemo;
   categories: CommandCategory[];
 }
 
@@ -57,6 +79,34 @@ const BOTS_DATA: BotData[] = [
     banner: "/bots/endfield/banner.jpg",
     description:
       "為《明日方舟：終末地》玩家提供的便捷工具，包含自動簽到、角色查詢及新聞推播。",
+    demo: {
+      channelName: 'endfield-bot-demo',
+      rounds: [
+        {
+          userCommand: '/daily status',
+          botEmbed: {
+            title: '✅ 今日簽到完成',
+            description: '您的帳號已成功完成今日簽到',
+            fields: [
+              { name: '獎勵', value: '合成玉 × 60' },
+              { name: '連續天數', value: '14 天' },
+              { name: '下次簽到', value: '明日 08:00' },
+            ],
+          },
+        },
+        {
+          userCommand: '/news latest',
+          botEmbed: {
+            title: '📰 最新公告',
+            description: '版本 1.2 前瞻直播公告',
+            fields: [
+              { name: '日期', value: '2026/04/20' },
+              { name: '獎勵碼', value: '直播期間公開' },
+            ],
+          },
+        },
+      ],
+    },
     categories: [
       {
         name: "使用手冊 (README)",
@@ -578,6 +628,35 @@ const BOTS_DATA: BotData[] = [
     banner: "/bots/hsr/banner.png",
     description:
       "銀河冒險必備工具，提供自動簽到、角色展櫃查詢、實時便簽與躍遷模擬機能。",
+    demo: {
+      channelName: 'hsr-bot-demo',
+      rounds: [
+        {
+          userCommand: '/character 角色: 卡芙卡',
+          botEmbed: {
+            title: '⚡ 卡芙卡 — 星際巡航列車',
+            description: '命途：虛無 · 屬性：雷',
+            fields: [
+              { name: '稀有度', value: '5 星' },
+              { name: '武器', value: '突擊槍' },
+              { name: '陣營', value: '星際巡航列車' },
+            ],
+          },
+        },
+        {
+          userCommand: '/relic recommend 角色: 卡芙卡',
+          botEmbed: {
+            title: '🎯 遺器推薦',
+            description: '卡芙卡最佳化遺器套裝',
+            fields: [
+              { name: '4件套', value: '囚徒深淵' },
+              { name: '2件套', value: '太空密封站' },
+              { name: '主詞條', value: '攻擊% / 速度' },
+            ],
+          },
+        },
+      ],
+    },
     categories: [
       {
         name: "使用手冊 (README)",
@@ -802,6 +881,34 @@ const BOTS_DATA: BotData[] = [
     banner: "/bots/zzz/banner.png",
     description:
       "新艾利都生存必備，提供自動簽到、實時便簽、信號搜索紀錄與代理人檔案查詢。",
+    demo: {
+      channelName: 'zzz-bot-demo',
+      rounds: [
+        {
+          userCommand: '/character 名字: 貝爾',
+          botEmbed: {
+            title: '⚡ 貝爾 — 女警',
+            description: '陣營：維多利亞家政 · 屬性：電',
+            fields: [
+              { name: '稀有度', value: 'S 級' },
+              { name: '武器', value: '寬刃' },
+              { name: '特長', value: '突破' },
+            ],
+          },
+        },
+        {
+          userCommand: '/event current',
+          botEmbed: {
+            title: '📅 當前活動',
+            description: '蒼穹的獻禮 · 剩餘 3 天 14 小時',
+            fields: [
+              { name: '類型', value: '聯名活動' },
+              { name: '獎勵', value: '星徽 × 800' },
+            ],
+          },
+        },
+      ],
+    },
     categories: [
       {
         name: "使用手冊 (README)",
