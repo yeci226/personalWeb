@@ -1,5 +1,6 @@
 :root {
   --pink: #E6397C;
+  --pink-rgb: 230, 57, 124;
   --dark: #1A1A1D;
   --darker: #111113;
   --surface: #1e1f22;
@@ -105,8 +106,8 @@ a { color: inherit; text-decoration: none; }
   width: 52%;
   height: 100%;
   background-image:
-    linear-gradient(rgba(230, 57, 124, 0.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(230, 57, 124, 0.04) 1px, transparent 1px);
+    linear-gradient(rgba(var(--pink-rgb), 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(var(--pink-rgb), 0.04) 1px, transparent 1px);
   background-size: 40px 40px;
   pointer-events: none;
   z-index: 0;
@@ -190,7 +191,7 @@ a { color: inherit; text-decoration: none; }
   position: absolute;
   top: 0; left: 0; right: 0;
   height: 2px;
-  background: linear-gradient(90deg, var(--pink), rgba(230,57,124,0.4), transparent);
+  background: linear-gradient(90deg, var(--pink), rgba(var(--pink-rgb),0.4), transparent);
   z-index: 20;
 }
 
@@ -199,7 +200,7 @@ a { color: inherit; text-decoration: none; }
   left: 42%;
   top: 0; bottom: 0;
   width: 1px;
-  background: linear-gradient(to bottom, transparent, rgba(230,57,124,0.12), transparent);
+  background: linear-gradient(to bottom, transparent, rgba(var(--pink-rgb),0.12), transparent);
   z-index: 5;
   transform: rotate(3deg);
   transform-origin: top center;
@@ -225,18 +226,18 @@ a { color: inherit; text-decoration: none; }
 .s2-arrow.left {
   left: 0;
   border-radius: 0 10px 10px 0;
-  background: rgba(230, 57, 124, 0.08);
-  border: 1px solid rgba(230, 57, 124, 0.12);
+  background: rgba(var(--pink-rgb), 0.08);
+  border: 1px solid rgba(var(--pink-rgb), 0.12);
   border-left: none;
 }
 .s2-arrow.right {
   right: 0;
   border-radius: 10px 0 0 10px;
-  background: rgba(230, 57, 124, 0.08);
-  border: 1px solid rgba(230, 57, 124, 0.12);
+  background: rgba(var(--pink-rgb), 0.08);
+  border: 1px solid rgba(var(--pink-rgb), 0.12);
   border-right: none;
 }
-.s2-arrow:hover { background: rgba(230, 57, 124, 0.2); }
+.s2-arrow:hover { background: rgba(var(--pink-rgb), 0.2); }
 .s2-arrow-icon {
   font-size: 22px;
   color: var(--pink);
@@ -270,14 +271,14 @@ a { color: inherit; text-decoration: none; }
   height: 44px;
   border-radius: 50%;
   background: linear-gradient(135deg, var(--pink), #9b1f52);
-  border: 2px solid rgba(230, 57, 124, 0.4);
+  border: 2px solid rgba(var(--pink-rgb), 0.4);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 16px;
   font-weight: 900;
   color: white;
-  box-shadow: 0 0 16px rgba(230, 57, 124, 0.3);
+  box-shadow: 0 0 16px rgba(var(--pink-rgb), 0.3);
   flex-shrink: 0;
   overflow: hidden;
 }
@@ -437,7 +438,7 @@ a { color: inherit; text-decoration: none; }
   color: var(--pink);
   font-family: 'Courier New', monospace;
   font-weight: 700;
-  background: rgba(230, 57, 124, 0.1);
+  background: rgba(var(--pink-rgb), 0.1);
   padding: 0 4px;
   border-radius: 3px;
 }
@@ -507,7 +508,7 @@ a { color: inherit; text-decoration: none; }
   border-radius: 50%;
   background: #1e1e1e;
   cursor: pointer;
-  transition: all 0.25s;
+  transition: width 0.25s, border-radius 0.25s, background 0.25s;
   border: none;
   padding: 0;
 }
@@ -516,7 +517,7 @@ a { color: inherit; text-decoration: none; }
   border-radius: 3px;
   background: var(--pink);
 }
-.s2-dot:hover:not(.active) { background: rgba(230,57,124,0.4); }
+.s2-dot:hover:not(.active) { background: rgba(var(--pink-rgb),0.4); }
 
 /* ─── SCENE 3: PROJECTS ───────────────────────── */
 .scene-projects { background: var(--dark); }
@@ -572,9 +573,9 @@ a { color: inherit; text-decoration: none; }
   position: absolute;
   top: 0; left: 0; right: 0;
   height: 1px;
-  background: linear-gradient(90deg, rgba(230,57,124,0.5), transparent);
+  background: linear-gradient(90deg, rgba(var(--pink-rgb),0.5), transparent);
 }
-.s3-repo:hover { border-color: rgba(230,57,124,0.25); }
+.s3-repo:hover { border-color: rgba(var(--pink-rgb),0.25); }
 
 .s3-repo-name {
   font-size: 13px;
@@ -669,9 +670,9 @@ a { color: inherit; text-decoration: none; }
 .s4-icon-btn:hover { transform: translateY(-2px); }
 .s4-icon-btn.primary {
   background: var(--pink);
-  box-shadow: 0 8px 24px rgba(230,57,124,0.35);
+  box-shadow: 0 8px 24px rgba(var(--pink-rgb),0.35);
 }
-.s4-icon-btn.primary:hover { box-shadow: 0 12px 32px rgba(230,57,124,0.5); }
+.s4-icon-btn.primary:hover { box-shadow: 0 12px 32px rgba(var(--pink-rgb),0.5); }
 .s4-icon-btn.ghost {
   background: rgba(255,255,255,0.03);
   border: 1px solid #1e1e1e;
