@@ -37,7 +37,9 @@ export interface BotDemoEmbed {
 
 export interface BotDemoRound {
   userCommand: string;
-  botEmbed: BotDemoEmbed;
+  botEmbed?: BotDemoEmbed;   // rich embed with title / desc / fields
+  botImageUrl?: string;       // display a standalone image
+  botText?: string;           // plain text message
 }
 
 export interface BotDemo {

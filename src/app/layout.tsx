@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'yeci226 | 個人作品集',
+  title: 'yeci226',
   description: '熱衷於開發 Discord Bot、網頁以及探索新技術的開發者。',
 };
 

@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import Link from 'next/link';
 import FloatingGif from '@/components/FloatingGif';
-import { BOTS_DATA, BotData } from '@/data/bots';
+import { BOTS_DATA, BotData, BotDemoEmbed } from '@/data/bots';
 
 // ── Types ──────────────────────────────────────────
 interface Repo {
@@ -31,6 +31,178 @@ function getLangColor(lang: string | null): string {
 
 // ── Showcase bots (only those with demo data) ──────
 const SHOWCASE_BOTS: BotData[] = BOTS_DATA.filter((b) => b.demo).slice(0, 3);
+
+// ── Discord demo user config ─────
+// Customize name / color / optional avatar image once; reused everywhere
+const DEMO_USER = { name: 'Yeci', color: '#5865F2', avatarUrl: '96086308fc5a5a9b2a872a2d233de95a.webp' };
+
+// ── DiscordChat component ──────────────────────────
+type ChatMsg =
+  | { type: 'user'; text: string }
+  | { type: 'bot'; botEmbed?: BotDemoEmbed; botImageUrl?: string; botText?: string; thinking: boolean; replyTo: string };
+
+function DiscordChat({ bot, animKey }: { bot: BotData; animKey: number }) {
+  const [messages, setMessages] = useState<ChatMsg[]>([]);
+  const [inputText, setInputText] = useState('');
+  const messagesRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setMessages([]);
+    setInputText('');
+
+    if (!bot.demo?.rounds.length) return;
+
+    const timers: ReturnType<typeof setTimeout>[] = [];
+    let cancelled = false;
+
+    const sleep = (ms: number) =>
+      new Promise<void>((res) => { timers.push(setTimeout(res, ms)); });
+
+    async function run() {
+      await sleep(500);
+      for (const round of bot.demo!.rounds) {
+        if (cancelled) return;
+        // Type command char by char
+        const cmd = round.userCommand;
+        for (let i = 1; i <= cmd.length; i++) {
+          if (cancelled) return;
+          setInputText(cmd.slice(0, i));
+          await sleep(55);
+        }
+        if (cancelled) return;
+        await sleep(300);
+        // Send user message, clear input
+        setInputText('');
+        setMessages((prev) => [...prev, { type: 'user', text: cmd }]);
+        if (cancelled) return;
+        await sleep(400);
+        // Bot appears with thinking state
+        setMessages((prev) => [...prev, {
+          type: 'bot',
+          botEmbed: round.botEmbed,
+          botImageUrl: round.botImageUrl,
+          botText: round.botText,
+          thinking: true,
+          replyTo: cmd,
+        }]);
+        if (cancelled) return;
+        await sleep(1800);
+        if (cancelled) return;
+        // "Edit" the last message — reveal the embed
+        setMessages((prev) => {
+          const copy = [...prev];
+          const last = copy[copy.length - 1];
+          if (last?.type === 'bot') copy[copy.length - 1] = { ...last, thinking: false };
+          return copy;
+        });
+        if (cancelled) return;
+        await sleep(2200);
+      }
+    }
+
+    run();
+    return () => {
+      cancelled = true;
+      timers.forEach(clearTimeout);
+    };
+  }, [animKey, bot]);
+
+  useEffect(() => {
+    const el = messagesRef.current;
+    if (el) el.scrollTop = el.scrollHeight;
+  }, [messages]);
+
+  if (!bot.demo) return null;
+
+  return (
+    <div className="discord-window">
+      <div className="dc-header">
+        <span className="dc-hash">#</span>
+        <span className="dc-channel-name">{bot.demo.channelName}</span>
+      </div>
+
+      <div className="dc-messages" ref={messagesRef}>
+        {/* spacer pushes messages to bottom */}
+        <div className="dc-spacer" />
+
+        {messages.map((msg, i) => {
+          // User messages are surfaced via the bot's reply reference — don't render separately
+          if (msg.type === 'user') return null;
+
+          // Parse reply reference
+          const replyParts = msg.replyTo.split(' ');
+          const replyCmd = replyParts[0];
+          const replyArgs = replyParts.slice(1).join(' ');
+          return (
+            <div key={i} className="dc-group dc-msg-appear">
+              {/* Reply reference row */}
+              <div className="dc-reply">
+                <div className="dc-reply-mini-avatar" style={!DEMO_USER.avatarUrl ? { background: DEMO_USER.color } : undefined}>
+                  {DEMO_USER.avatarUrl && <img src={DEMO_USER.avatarUrl} alt={DEMO_USER.name} />}
+                </div>
+                <span className="dc-reply-who" style={{ color: DEMO_USER.color }}>
+                  {DEMO_USER.name}
+                </span>
+                <span className="dc-reply-label"> 已使用 </span>
+                <span className="dc-reply-cmd">{replyCmd}</span>
+                {replyArgs && <span className="dc-reply-arg"> {replyArgs}</span>}
+              </div>
+              {/* Actual bot message */}
+              <div className="dc-msg">
+                <div className="dc-avatar bot">
+                  {bot.icon && <img src={bot.icon} alt={bot.name} />}
+                </div>
+                <div>
+                  <div className="dc-username bot-color">
+                    {bot.name}
+                    <span className="dc-app-badge">APP</span>
+                  </div>
+                  {msg.thinking ? (
+                    <div className="dc-thinking">
+                      <div className="dc-typing-dots">
+                        <div className="dc-typing-dot" />
+                        <div className="dc-typing-dot" />
+                        <div className="dc-typing-dot" />
+                      </div>
+                      <span className="dc-thinking-label">{bot.name} 正在思考...</span>
+                    </div>
+                  ) : msg.botImageUrl ? (
+                    /* eslint-disable-next-line @next/next/no-img-element */
+                    <img src={msg.botImageUrl} alt="" className="dc-bot-image dc-embed-appear" />
+                  ) : msg.botText ? (
+                    <div className="dc-text dc-embed-appear">{msg.botText}</div>
+                  ) : msg.botEmbed ? (
+                    <div className="dc-embed dc-embed-appear">
+                      <div className="dc-embed-title">{msg.botEmbed.title}</div>
+                      <div className="dc-embed-desc">{msg.botEmbed.description}</div>
+                      <div className="dc-embed-fields">
+                        {msg.botEmbed.fields.map((f) => (
+                          <div key={f.name} className="dc-field">
+                            <div className="dc-field-name">{f.name}</div>
+                            <div className="dc-field-value">{f.value}</div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ) : null}
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="dc-input-bar">
+        <div className="dc-input-inner">
+          {inputText
+            ? <><span className="dc-input-text">{inputText}</span><span className="dc-cursor" /></>
+            : <span className="dc-placeholder">輸入指令...</span>
+          }
+        </div>
+      </div>
+    </div>
+  );
+}
 
 // ── Bot IDs for filtering projects ─────────────────
 const BOT_IDS = new Set(BOTS_DATA.map((b) => b.id.toLowerCase()));
@@ -78,7 +250,7 @@ export default function Home() {
 
         <div className="s1-grid" />
         <div className="s1-pink" />
-        <div className="s1-ghost">YC</div>
+        <div className="s1-ghost">Hello</div>
 
         <div className="s1-content">
           <div className="s1-eyebrow">Hello, World</div>
@@ -131,11 +303,6 @@ export default function Home() {
               </div>
             </div>
 
-            <div className="s2-online">
-              <div className="s2-online-dot" />
-              線上運行中
-            </div>
-
             <p className="s2-desc">{currentBot.description}</p>
 
             <div className="s2-btns">
@@ -148,116 +315,26 @@ export default function Home() {
         {/* Right: animated Discord chat */}
         {currentBot?.demo && (
           <div className="s2-right">
-            <div className="discord-window" key={animKey}>
-              <div className="dc-header">
-                <span className="dc-hash">#</span>
-                <span className="dc-channel-name">{currentBot.demo.channelName}</span>
-                <div className="dc-live-dot" title="即時展示中" />
-              </div>
-              <div className="dc-body">
-                {/* Round 1 */}
-                <div className="dc-msg dc-anim" style={{ animationDelay: '0.3s' }}>
-                  <div className="dc-avatar user" />
-                  <div>
-                    <div className="dc-username user-color">user</div>
-                    <div className="dc-text">
-                      {currentBot.demo.rounds[0].userCommand.split(' ').map((part, i) =>
-                        i === 0
-                          ? <span key={i} className="dc-cmd">{part}</span>
-                          : <span key={i} className="dc-param"> {part}</span>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="dc-typing dc-anim" style={{ animationDelay: '1.0s' }}>
-                  <div className="dc-typing-dots">
-                    <div className="dc-typing-dot" />
-                    <div className="dc-typing-dot" />
-                    <div className="dc-typing-dot" />
-                  </div>
-                  {currentBot.name} 正在輸入...
-                </div>
-
-                <div className="dc-msg dc-anim" style={{ animationDelay: '1.8s' }}>
-                  <div className="dc-avatar bot" />
-                  <div>
-                    <div className="dc-username bot-color">{currentBot.name}</div>
-                    <div className="dc-embed">
-                      <div className="dc-embed-title">{currentBot.demo.rounds[0].botEmbed.title}</div>
-                      <div className="dc-embed-desc">{currentBot.demo.rounds[0].botEmbed.description}</div>
-                      <div className="dc-embed-fields">
-                        {currentBot.demo.rounds[0].botEmbed.fields.map((f) => (
-                          <div key={f.name} className="dc-field">
-                            <div className="dc-field-name">{f.name}</div>
-                            <div className="dc-field-value">{f.value}</div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Round 2 (if available) */}
-                {currentBot.demo.rounds[1] && (
-                  <>
-                    <div className="dc-msg dc-anim" style={{ animationDelay: '3.2s' }}>
-                      <div className="dc-avatar user" />
-                      <div>
-                        <div className="dc-username user-color">user</div>
-                        <div className="dc-text">
-                          {currentBot.demo.rounds[1].userCommand.split(' ').map((part, i) =>
-                            i === 0
-                              ? <span key={i} className="dc-cmd">{part}</span>
-                              : <span key={i} className="dc-param"> {part}</span>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="dc-typing dc-anim" style={{ animationDelay: '4.0s' }}>
-                      <div className="dc-typing-dots">
-                        <div className="dc-typing-dot" />
-                        <div className="dc-typing-dot" />
-                        <div className="dc-typing-dot" />
-                      </div>
-                      {currentBot.name} 正在輸入...
-                    </div>
-
-                    <div className="dc-msg dc-anim" style={{ animationDelay: '4.8s' }}>
-                      <div className="dc-avatar bot" />
-                      <div>
-                        <div className="dc-username bot-color">{currentBot.name}</div>
-                        <div className="dc-embed">
-                          <div className="dc-embed-title">{currentBot.demo.rounds[1].botEmbed.title}</div>
-                          <div className="dc-embed-desc">{currentBot.demo.rounds[1].botEmbed.description}</div>
-                          <div className="dc-embed-fields">
-                            {currentBot.demo.rounds[1].botEmbed.fields.map((f) => (
-                              <div key={f.name} className="dc-field">
-                                <div className="dc-field-name">{f.name}</div>
-                                <div className="dc-field-value">{f.value}</div>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </>
-                )}
-              </div>
-            </div>
+            <DiscordChat key={animKey} bot={currentBot} animKey={animKey} />
           </div>
         )}
 
-        {/* Bottom dots */}
-        <div className="s2-dots">
-          {SHOWCASE_BOTS.map((_, i) => (
+        {/* Bottom bot-avatar nav */}
+        <div className="s2-bots-nav">
+          {SHOWCASE_BOTS.map((bot, i) => (
             <button
               key={i}
-              className={`s2-dot${i === botIndex ? ' active' : ''}`}
+              className={`s2-bot-nav-btn${i === botIndex ? ' active' : ''}`}
               onClick={() => switchBot(i)}
-              aria-label={`Bot ${i + 1}`}
-            />
+              aria-label={bot.name}
+            >
+              <div className="s2-bot-nav-icon">
+                {bot.icon
+                  ? <img src={bot.icon} alt={bot.name} />
+                  : bot.name.charAt(0).toUpperCase()}
+              </div>
+              <span className="s2-bot-nav-name">{bot.name}</span>
+            </button>
           ))}
         </div>
       </section>
@@ -271,22 +348,26 @@ export default function Home() {
         <div className="sc-counter">03 / 04</div>
 
         <div className="s3-inner">
-          <div className="s3-head">
-            <div className="s3-head-line" />
-            <div className="s3-head-text">精選專案</div>
-          </div>
-
           <div className="s3-repos">
             {projectRepos.length > 0
-              ? projectRepos.map((repo) => (
+              ? projectRepos.map((repo, idx) => (
                   <a
                     key={repo.id}
                     href={repo.html_url}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="s3-repo"
+                    style={{
+                      '--lang-color': getLangColor(repo.language),
+                      animationDelay: `${idx * 70}ms`,
+                    } as React.CSSProperties}
                   >
-                    <div className="s3-repo-name">{repo.name}</div>
+                    <div className="s3-repo-top">
+                      <div className="s3-repo-name">{repo.name}</div>
+                      {repo.stargazers_count > 0 && (
+                        <div className="s3-repo-stars">★ {repo.stargazers_count}</div>
+                      )}
+                    </div>
                     <div className="s3-repo-desc">
                       {repo.description || '暫無描述'}
                     </div>
@@ -295,12 +376,12 @@ export default function Home() {
                         className="s3-lang-dot"
                         style={{ backgroundColor: getLangColor(repo.language) }}
                       />
-                      {repo.language ?? 'Other'} · ★ {repo.stargazers_count}
+                      {repo.language ?? 'Other'}
                     </div>
                   </a>
                 ))
               : Array.from({ length: 4 }).map((_, i) => (
-                  <div key={i} className="s3-repo">
+                  <div key={i} className="s3-repo" style={{ '--lang-color': '#333' } as React.CSSProperties}>
                     <div className="s3-repo-name" style={{ background: '#1a1a1a', height: 14, borderRadius: 4 }} />
                     <div className="s3-repo-desc" style={{ background: '#161616', height: 32, borderRadius: 4, marginTop: 4 }} />
                   </div>

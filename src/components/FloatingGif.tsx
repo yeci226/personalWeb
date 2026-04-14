@@ -11,6 +11,7 @@ export default function FloatingGif() {
   const [pos, setPos] = useState({ top: 0, left: 0 });
   const dragging = useRef(false);
   const offset = useRef({ x: 0, y: 0 });
+  const mouseDownPos = useRef<{ x: number; y: number } | null>(null);
 
   useEffect(() => {
     if (CHAR_GIFS.length === 0) return;
@@ -40,6 +41,7 @@ export default function FloatingGif() {
         x: e.clientX - rect.left,
         y: e.clientY - rect.top,
       };
+      mouseDownPos.current = { x: e.clientX, y: e.clientY };
       e.preventDefault();
     };
 
@@ -54,17 +56,38 @@ export default function FloatingGif() {
       });
     };
 
-    const onMouseUp = () => { dragging.current = false; };
+
+    // 移除 onClick，改用 onMouseUp 判斷是否為點擊
+    const CLICK_THRESHOLD = 5; // px
+    const onMouseUp = (e: MouseEvent) => {
+      if (!dragging.current) return;
+      dragging.current = false;
+      if (mouseDownPos.current) {
+        const dx = e.clientX - mouseDownPos.current.x;
+        const dy = e.clientY - mouseDownPos.current.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < CLICK_THRESHOLD) {
+          // 真正的點擊
+          e.preventDefault();
+          const currentIndex = CHAR_GIFS.indexOf(src!);
+          const nextIndex = (currentIndex + 1) % CHAR_GIFS.length;
+          setSrc(CHAR_GIFS[nextIndex]);
+        }
+      }
+      mouseDownPos.current = null;
+    };
+
 
     el.addEventListener('mousedown', onMouseDown);
     document.addEventListener('mousemove', onMouseMove);
     document.addEventListener('mouseup', onMouseUp);
+    // 不再需要 click 事件
     return () => {
       el.removeEventListener('mousedown', onMouseDown);
       document.removeEventListener('mousemove', onMouseMove);
       document.removeEventListener('mouseup', onMouseUp);
     };
-  }, []);
+  }, [src]);
 
   if (!src) return null;
 
