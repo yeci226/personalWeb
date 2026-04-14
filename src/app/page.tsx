@@ -95,8 +95,172 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── SCENE 2: PLACEHOLDER ──────────────────── */}
-      <section className="scene scene-bots" />
+      {/* ── SCENE 2: BOT SHOWCASE ─────────────────── */}
+      <section className="scene scene-bots">
+        <div className="sc-label">
+          <div className="sc-label-line" />
+          <div className="sc-label-text">Discord Bots</div>
+        </div>
+        <div className="sc-counter">02 / 04</div>
+
+        <div className="s2-top-strip" />
+        <div className="s2-accent" />
+
+        {/* Edge arrows */}
+        <button className="s2-arrow left" onClick={prevBot} aria-label="Previous bot">
+          <span className="s2-arrow-icon">‹</span>
+        </button>
+        <button className="s2-arrow right" onClick={nextBot} aria-label="Next bot">
+          <span className="s2-arrow-icon">›</span>
+        </button>
+
+        {/* Left: bot info */}
+        {currentBot && (
+          <div className="s2-left">
+            <div className="s2-bot-row">
+              <div className="s2-bot-icon">
+                {currentBot.icon
+                  ? <img src={currentBot.icon} alt={currentBot.name} />
+                  : currentBot.name.charAt(0).toUpperCase()}
+              </div>
+              <div>
+                <div className="s2-bot-tag">
+                  Bot · {String(botIndex + 1).padStart(2, '0')} / {String(SHOWCASE_BOTS.length).padStart(2, '0')}
+                </div>
+                <div className="s2-bot-name">{currentBot.name}</div>
+              </div>
+            </div>
+
+            <div className="s2-online">
+              <div className="s2-online-dot" />
+              線上運行中
+            </div>
+
+            <p className="s2-desc">{currentBot.description}</p>
+
+            <div className="s2-btns">
+              <button className="s2-btn-primary">邀請至伺服器</button>
+              <button className="s2-btn-ghost">指令列表</button>
+            </div>
+          </div>
+        )}
+
+        {/* Right: animated Discord chat */}
+        {currentBot?.demo && (
+          <div className="s2-right">
+            <div className="discord-window" key={animKey}>
+              <div className="dc-header">
+                <span className="dc-hash">#</span>
+                <span className="dc-channel-name">{currentBot.demo.channelName}</span>
+                <div className="dc-live-dot" title="即時展示中" />
+              </div>
+              <div className="dc-body">
+                {/* Round 1 */}
+                <div className="dc-msg dc-anim" style={{ animationDelay: '0.3s' }}>
+                  <div className="dc-avatar user" />
+                  <div>
+                    <div className="dc-username user-color">user</div>
+                    <div className="dc-text">
+                      {currentBot.demo.rounds[0].userCommand.split(' ').map((part, i) =>
+                        i === 0
+                          ? <span key={i} className="dc-cmd">{part}</span>
+                          : <span key={i} className="dc-param"> {part}</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="dc-typing dc-anim" style={{ animationDelay: '1.0s' }}>
+                  <div className="dc-typing-dots">
+                    <div className="dc-typing-dot" />
+                    <div className="dc-typing-dot" />
+                    <div className="dc-typing-dot" />
+                  </div>
+                  {currentBot.name} 正在輸入...
+                </div>
+
+                <div className="dc-msg dc-anim" style={{ animationDelay: '1.8s' }}>
+                  <div className="dc-avatar bot" />
+                  <div>
+                    <div className="dc-username bot-color">{currentBot.name}</div>
+                    <div className="dc-embed">
+                      <div className="dc-embed-title">{currentBot.demo.rounds[0].botEmbed.title}</div>
+                      <div className="dc-embed-desc">{currentBot.demo.rounds[0].botEmbed.description}</div>
+                      <div className="dc-embed-fields">
+                        {currentBot.demo.rounds[0].botEmbed.fields.map((f) => (
+                          <div key={f.name} className="dc-field">
+                            <div className="dc-field-name">{f.name}</div>
+                            <div className="dc-field-value">{f.value}</div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Round 2 (if available) */}
+                {currentBot.demo.rounds[1] && (
+                  <>
+                    <div className="dc-msg dc-anim" style={{ animationDelay: '3.2s' }}>
+                      <div className="dc-avatar user" />
+                      <div>
+                        <div className="dc-username user-color">user</div>
+                        <div className="dc-text">
+                          {currentBot.demo.rounds[1].userCommand.split(' ').map((part, i) =>
+                            i === 0
+                              ? <span key={i} className="dc-cmd">{part}</span>
+                              : <span key={i} className="dc-param"> {part}</span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="dc-typing dc-anim" style={{ animationDelay: '4.0s' }}>
+                      <div className="dc-typing-dots">
+                        <div className="dc-typing-dot" />
+                        <div className="dc-typing-dot" />
+                        <div className="dc-typing-dot" />
+                      </div>
+                      {currentBot.name} 正在輸入...
+                    </div>
+
+                    <div className="dc-msg dc-anim" style={{ animationDelay: '4.8s' }}>
+                      <div className="dc-avatar bot" />
+                      <div>
+                        <div className="dc-username bot-color">{currentBot.name}</div>
+                        <div className="dc-embed">
+                          <div className="dc-embed-title">{currentBot.demo.rounds[1].botEmbed.title}</div>
+                          <div className="dc-embed-desc">{currentBot.demo.rounds[1].botEmbed.description}</div>
+                          <div className="dc-embed-fields">
+                            {currentBot.demo.rounds[1].botEmbed.fields.map((f) => (
+                              <div key={f.name} className="dc-field">
+                                <div className="dc-field-name">{f.name}</div>
+                                <div className="dc-field-value">{f.value}</div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Bottom dots */}
+        <div className="s2-dots">
+          {SHOWCASE_BOTS.map((_, i) => (
+            <button
+              key={i}
+              className={`s2-dot${i === botIndex ? ' active' : ''}`}
+              onClick={() => switchBot(i)}
+              aria-label={`Bot ${i + 1}`}
+            />
+          ))}
+        </div>
+      </section>
 
       {/* ── SCENE 3: PLACEHOLDER ──────────────────── */}
       <section className="scene scene-projects" />
