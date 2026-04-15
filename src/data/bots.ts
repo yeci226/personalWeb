@@ -589,6 +589,13 @@ export const BOTS_DATA: BotData[] = [
     banner: "/bots/ff14/banner.png",
     description:
       "《最終幻想14》玩家的貼身助手，包含物品查詢、官方新聞訂閱及維護通知。",
+    inviteUrl: "https://discord.com/oauth2/authorize?client_id=1006747370060533760",
+    demo: {
+      channelName: 'ff14-bot-demo',
+      rounds: [
+        { userCommand: '/news bind', botImageUrl: 'bots/ff14/notify.png' },
+      ],
+    },
     categories: [
       {
         name: "使用手冊 (README)",
