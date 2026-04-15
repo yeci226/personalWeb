@@ -38,7 +38,7 @@ export interface BotDemoEmbed {
 export interface BotDemoRound {
   userCommand: string;
   botEmbed?: BotDemoEmbed;   // rich embed with title / desc / fields
-  botImageUrl?: string;       // display a standalone image
+  botImageUrl?: string | string[];       // display a standalone image
   botText?: string;           // plain text message
 }
 
@@ -53,6 +53,7 @@ export interface BotData {
   icon: string;
   banner?: string;
   description: string;
+  inviteUrl?: string;
   demo?: BotDemo;
   categories: CommandCategory[];
 }
