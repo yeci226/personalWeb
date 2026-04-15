@@ -684,6 +684,7 @@ export const BOTS_DATA: BotData[] = [
     banner: "/bots/hsr/banner.png",
     description:
       "銀河冒險必備工具，提供自動簽到、角色展櫃查詢、實時便簽與躍遷模擬機能。",
+    inviteUrl: "https://discord.com/oauth2/authorize?client_id=895191125512581171",
     demo: {
       channelName: 'hsr-bot-demo',
       rounds: [
@@ -694,7 +695,15 @@ export const BOTS_DATA: BotData[] = [
         {
           userCommand: '/忘卻之庭紀錄 模式: 異相仲裁',
           botImageUrl: 'bots/hsr/ano.png',
-        }
+        },
+        { userCommand: '/daily', botImageUrl: 'bots/hsr/daily.png' },
+        { userCommand: '/note', botImageUrl: 'bots/hsr/note.png' },
+        { userCommand: '/memory', botImageUrl: ['bots/hsr/memory.png', 'bots/hsr/story.png', 'bots/hsr/boss.png'] },
+        { userCommand: '/profile', botImageUrl: ['bots/hsr/profile.png', 'bots/hsr/profile-char.png'] },
+        { userCommand: '/leaderboard', botImageUrl: 'bots/hsr/leaderboard.png' },
+        { userCommand: '/warp log', botImageUrl: 'bots/hsr/warp-log.png' },
+        { userCommand: '/warp simulator', botImageUrl: 'bots/hsr/warp-sim.png' },
+        { userCommand: '/atlas character', botImageUrl: 'bots/hsr/atlas.png' },
       ],
     },
     categories: [
