@@ -1535,6 +1535,36 @@ export const BOTS_DATA: BotData[] = [
     banner: "/bots/outo/banner.png",
     description:
       "專注於問答遊戲與測驗的實體機器人，包含詞庫管理、自動化 Quiz 邏輯與歷史戰績紀錄。",
+    inviteUrl: "https://discord.com/oauth2/authorize?client_id=1369294751618039808",
+    demo: {
+      channelName: 'outo-bot-demo',
+      rounds: [
+        {
+          userCommand: '/quiz',
+          botEmbed: {
+            title: '🧠 友情大會考開始！',
+            description: 'AI 正在分析頻道歷史紀錄，生成專屬題目中...',
+            fields: [
+              { name: '模式', value: '多人大會考' },
+              { name: '題目數量', value: '20 題' },
+              { name: '主題', value: '自動生成' },
+            ],
+          },
+        },
+        {
+          userCommand: '/add',
+          botEmbed: {
+            title: '✅ 詞彙新增成功',
+            description: '已將新的觸發詞加入詞庫',
+            fields: [
+              { name: '觸發詞', value: '早安' },
+              { name: '回覆', value: '早安！新的一天加油！' },
+              { name: '觸發機率', value: '80%' },
+            ],
+          },
+        },
+      ],
+    },
     categories: [
       {
         name: "使用手冊 (README)",
