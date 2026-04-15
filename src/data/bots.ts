@@ -930,6 +930,7 @@ export const BOTS_DATA: BotData[] = [
     banner: "/bots/zzz/banner.png",
     description:
       "新艾利都生存必備，提供自動簽到、實時便簽、信號搜索紀錄與代理人檔案查詢。",
+    inviteUrl: "https://discord.com/oauth2/authorize?client_id=1170366976162537543",
     demo: {
       channelName: 'zzz-bot-demo',
       rounds: [
@@ -956,6 +957,11 @@ export const BOTS_DATA: BotData[] = [
             ],
           },
         },
+        { userCommand: '/note', botImageUrl: 'bots/zzz/note.png' },
+        { userCommand: '/profile', botImageUrl: ['bots/zzz/profile.png', 'bots/zzz/profile-char.png'] },
+        { userCommand: '/shiyudefense', botImageUrl: 'bots/zzz/shiyudefense.png' },
+        { userCommand: '/deadlyassault', botImageUrl: 'bots/zzz/deadlyassault.png' },
+        { userCommand: '/signal-log', botImageUrl: 'bots/zzz/signal-log.png' },
       ],
     },
     categories: [
