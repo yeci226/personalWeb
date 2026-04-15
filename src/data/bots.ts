@@ -1329,6 +1329,34 @@ export const BOTS_DATA: BotData[] = [
     banner: "/bots/haneko/banner.png",
     description:
       "多功能社交與娛樂機器人，提供 NSFW 內容查詢、隊伍管理與各類實用的 Discord 互動功能。",
+    inviteUrl: "https://discord.com/oauth2/authorize?client_id=998934498274181132",
+    demo: {
+      channelName: 'haneko-bot-demo',
+      rounds: [
+        {
+          userCommand: '/nhentai search',
+          botEmbed: {
+            title: '🔍 搜尋結果',
+            description: '找到 1,247 個符合條件的結果',
+            fields: [
+              { name: '篩選', value: 'tag: maid' },
+              { name: '排序', value: '最熱門' },
+            ],
+          },
+        },
+        {
+          userCommand: '/list',
+          botEmbed: {
+            title: '💖 我的收藏夾',
+            description: '共 23 個項目',
+            fields: [
+              { name: '稍後觀看', value: '12 個' },
+              { name: '收藏夾', value: '11 個' },
+            ],
+          },
+        },
+      ],
+    },
     categories: [
       {
         name: "使用手冊 (README)",
