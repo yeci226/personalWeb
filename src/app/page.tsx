@@ -14,6 +14,7 @@ interface Repo {
   stargazers_count: number;
   language: string | null;
   html_url: string;
+  owner_login?: string;
 }
 
 function getLangColor(lang: string | null): string {
@@ -64,7 +65,7 @@ function PageLightbox({
       <div className="lightbox-content" onClick={(e) => e.stopPropagation()}>
         <button className="lightbox-close" onClick={onClose}>×</button>
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={images[current]} alt="" className="lightbox-img" />
+        <img key={images[current]} src={images[current]} alt="" className="lightbox-img" />
         {images.length > 1 && (
           <>
             <button className="lightbox-arrow left" onClick={() => setCurrent((i) => (i - 1 + images.length) % images.length)}>‹</button>
@@ -116,6 +117,7 @@ function BotImageCarousel({
     <div className="dc-carousel">
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
+        key={images[current]}
         src={images[current]}
         alt=""
         className="dc-bot-image dc-embed-appear clickable"
@@ -144,6 +146,7 @@ function DiscordChat({ bot, animKey }: { bot: BotData; animKey: number }) {
   const [messages, setMessages] = useState<ChatMsg[]>([]);
   const [inputText, setInputText] = useState('');
   const messagesRef = useRef<HTMLDivElement>(null);
+  const isAtBottomRef = useRef(true);
   const [lightboxImages, setLightboxImages] = useState<string[] | null>(null);
   const [lightboxStartIndex, setLightboxStartIndex] = useState(0);
 
@@ -213,10 +216,27 @@ function DiscordChat({ bot, animKey }: { bot: BotData; animKey: number }) {
     };
   }, [animKey, bot]);
 
+  // Track whether user is near the bottom
   useEffect(() => {
     const el = messagesRef.current;
-    if (el) el.scrollTop = el.scrollHeight;
+    if (!el) return;
+    const onScroll = () => {
+      isAtBottomRef.current = el.scrollTop + el.clientHeight >= el.scrollHeight - 60;
+    };
+    el.addEventListener('scroll', onScroll, { passive: true });
+    return () => el.removeEventListener('scroll', onScroll);
+  }, []);
+
+  // Auto-scroll only when user hasn't scrolled up
+  useEffect(() => {
+    const el = messagesRef.current;
+    if (el && isAtBottomRef.current) el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' });
   }, [messages]);
+
+  // Reset scroll state when bot switches
+  useEffect(() => {
+    isAtBottomRef.current = true;
+  }, [animKey]);
 
   if (!bot.demo) return null;
 
@@ -296,16 +316,49 @@ function DiscordChat({ bot, animKey }: { bot: BotData; animKey: number }) {
                   ) : msg.botText ? (
                     <div className="dc-text dc-embed-appear">{msg.botText}</div>
                   ) : msg.botEmbed ? (
-                    <div className="dc-embed dc-embed-appear">
-                      <div className="dc-embed-title">{msg.botEmbed.title}</div>
-                      <div className="dc-embed-desc">{msg.botEmbed.description}</div>
-                      <div className="dc-embed-fields">
-                        {msg.botEmbed.fields.map((f) => (
-                          <div key={f.name} className="dc-field">
-                            <div className="dc-field-name">{f.name}</div>
-                            <div className="dc-field-value">{f.value}</div>
+                    <div
+                      className="dc-embed dc-embed-appear"
+                      style={msg.botEmbed.color ? { borderLeftColor: msg.botEmbed.color } : {}}
+                    >
+                      <div className="dc-embed-inner">
+                        <div className="dc-embed-main">
+                          {msg.botEmbed.author && (
+                            <div className="dc-embed-author">
+                              {msg.botEmbed.author.iconUrl && (
+                                /* eslint-disable-next-line @next/next/no-img-element */
+                                <img src={msg.botEmbed.author.iconUrl} alt="" className="dc-embed-author-icon" />
+                              )}
+                              <span className="dc-embed-author-name">{msg.botEmbed.author.name}</span>
+                            </div>
+                          )}
+                          <div className="dc-embed-title">{msg.botEmbed.title}</div>
+                          {msg.botEmbed.description && (
+                            <div className="dc-embed-desc">{msg.botEmbed.description}</div>
+                          )}
+                          {msg.botEmbed.fields.length > 0 && (
+                            <div className="dc-embed-fields">
+                              {msg.botEmbed.fields.map((f) => (
+                                <div key={f.name} className="dc-field">
+                                  <div className="dc-field-name">{f.name}</div>
+                                  <div className="dc-field-value">{f.value}</div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                          {msg.botEmbed.image && (
+                            /* eslint-disable-next-line @next/next/no-img-element */
+                            <img src={msg.botEmbed.image} alt="" className="dc-embed-image" />
+                          )}
+                          {msg.botEmbed.footer && (
+                            <div className="dc-embed-footer">{msg.botEmbed.footer}</div>
+                          )}
+                        </div>
+                        {msg.botEmbed.thumbnail && (
+                          <div className="dc-embed-thumbnail">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img src={msg.botEmbed.thumbnail} alt="" />
                           </div>
-                        ))}
+                        )}
                       </div>
                     </div>
                   ) : null}
@@ -340,6 +393,140 @@ function DiscordChat({ bot, animKey }: { bot: BotData; animKey: number }) {
 // ── Bot IDs for filtering projects ─────────────────
 const BOT_IDS = new Set(BOTS_DATA.map((b) => b.id.toLowerCase()));
 
+// ── RepoMasonry — pretext + star-weighted sizing ────
+// Tier 1 (≥5★): double-wide card, large typography
+// Tier 2 (1-4★): standard single-column card
+// Tier 3 (0★):  compact single-column card
+type RepoTier = 1 | 2 | 3;
+
+const TIER_CFG = {
+  1: { span: 2, nf: '700 18px system-ui,sans-serif', nlh: 24, df: '13px system-ui,sans-serif', dlh: 19, px: 20, py: 18, fh: 24 },
+  2: { span: 1, nf: '700 13px system-ui,sans-serif', nlh: 20, df: '11px system-ui,sans-serif', dlh: 17, px: 18, py: 16, fh: 22 },
+  3: { span: 1, nf: '700 12px system-ui,sans-serif', nlh: 18, df: '10.5px system-ui,sans-serif', dlh: 16, px: 16, py: 13, fh: 20 },
+} as const;
+
+function getRepoTier(stars: number): RepoTier {
+  if (stars >= 5) return 1;
+  if (stars >= 1) return 2;
+  return 3;
+}
+
+function RepoMasonry({ repos }: { repos: Repo[] }) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [state, setState] = useState<{
+    positions: Array<{ x: number; y: number; w: number; tier: RepoTier; delay: number }>;
+    totalH: number;
+  } | null>(null);
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el || !repos.length) return;
+    let cancelled = false;
+
+    import('@chenglou/pretext').then(({ prepare, layout: ptLayout }) => {
+      if (cancelled) return;
+      const W = el.clientWidth;
+      const COLS = 3, GAP = 12;
+      const cw = Math.floor((W - GAP * (COLS - 1)) / COLS);
+      const colH = [0, 0, 0];
+
+      const positions = repos.map((repo) => {
+        const tier = getRepoTier(repo.stargazers_count);
+        const cfg = TIER_CFG[tier];
+        const span = cfg.span;
+        const cardW = span === 2 ? 2 * cw + GAP : cw;
+        const TW = cardW - 2 * cfg.px;
+
+        const { height: nameH } = ptLayout(prepare(repo.name, cfg.nf), TW, cfg.nlh);
+        const { height: descH } = ptLayout(prepare(repo.description ?? '暫無描述', cfg.df), TW, cfg.dlh);
+        const h = 2 * cfg.py + nameH + 6 + descH + 8 + cfg.fh;
+
+        let col: number, y: number;
+        if (span === 1) {
+          col = colH.indexOf(Math.min(...colH));
+          y = colH[col];
+          colH[col] += h + GAP;
+        } else {
+          // Find the 2-column window with lowest max height
+          let bestStart = 0;
+          let bestY = Math.max(colH[0], colH[1]);
+          for (let i = 1; i <= COLS - span; i++) {
+            const candidateY = Math.max(...colH.slice(i, i + span));
+            if (candidateY < bestY) { bestY = candidateY; bestStart = i; }
+          }
+          col = bestStart;
+          y = bestY;
+          for (let i = col; i < col + span; i++) colH[i] = y + h + GAP;
+        }
+
+        return { x: col * (cw + GAP), y, w: cardW, tier };
+      });
+
+      const maxY = Math.max(...positions.map((p) => p.y), 1);
+      setState({
+        positions: positions.map((p) => ({
+          ...p,
+          delay: Math.round((p.y / maxY) * 400),
+        })),
+        totalH: Math.max(...colH),
+      });
+    });
+
+    return () => { cancelled = true; };
+  }, [repos]);
+
+  return (
+    <div ref={containerRef} className={`s3-masonry${state ? ' s3-masonry-ready' : ''}`}>
+      <div style={{ position: 'relative', height: state?.totalH }}>
+        {state
+          ? repos.map((repo, idx) => {
+              const pos = state.positions[idx];
+              return (
+                <a
+                  key={repo.id}
+                  href={repo.html_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`s3-repo tier-${pos.tier}`}
+                  style={{
+                    position: 'absolute',
+                    left: pos.x,
+                    top: pos.y,
+                    width: pos.w,
+                    '--lang-color': getLangColor(repo.language),
+                    animationDelay: `${pos.delay}ms`,
+                  } as React.CSSProperties}
+                >
+                  <div className="s3-repo-top">
+                    <div className="s3-repo-name">
+                      {repo.name}
+                      {repo.owner_login && repo.owner_login !== 'yeci226' && (
+                        <span className="s3-repo-original">{repo.owner_login}</span>
+                      )}
+                    </div>
+                    {repo.stargazers_count > 0 && (
+                      <div className="s3-repo-stars">★ {repo.stargazers_count}</div>
+                    )}
+                  </div>
+                  <div className="s3-repo-desc">{repo.description ?? '暫無描述'}</div>
+                  <div className="s3-repo-footer">
+                    <div className="s3-lang-dot" style={{ backgroundColor: getLangColor(repo.language) }} />
+                    {repo.language ?? 'Other'}
+                  </div>
+                </a>
+              );
+            })
+          : Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="s3-repo tier-2" style={{ '--lang-color': '#333' } as React.CSSProperties}>
+                <div className="s3-repo-name" style={{ background: '#1a1a1a', height: 14, borderRadius: 4 }} />
+                <div className="s3-repo-desc" style={{ background: '#161616', height: 32, borderRadius: 4, marginTop: 4 }} />
+              </div>
+            ))}
+      </div>
+    </div>
+  );
+}
+
 export default function Home() {
   const [repos, setRepos] = useState<Repo[]>([]);
   const [botIndex, setBotIndex] = useState(0);
@@ -349,6 +536,21 @@ export default function Home() {
 
   useEffect(() => {
     setTimeout(() => setHeroIn(true), 80);
+  }, []);
+
+  // Scene reveal via IntersectionObserver
+  useEffect(() => {
+    const scenes = document.querySelectorAll('.scene-bots, .scene-projects, .scene-contact');
+    const obs = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) entry.target.classList.add('scene-visible');
+        });
+      },
+      { threshold: 0.15 },
+    );
+    scenes.forEach((s) => obs.observe(s));
+    return () => obs.disconnect();
   }, []);
 
   // Fetch GitHub repos
@@ -361,7 +563,9 @@ export default function Home() {
 
   // Filter out bot repos from projects scene
   const projectRepos = useMemo(
-    () => repos.filter((r) => !BOT_IDS.has(r.name.toLowerCase())).slice(0, 6),
+    () => repos.slice(0, 20).map((r) =>
+      BOT_IDS.has(r.name.toLowerCase()) ? { ...r, language: null } : r,
+    ),
     [repos],
   );
 
@@ -426,7 +630,7 @@ export default function Home() {
 
         {/* Left: bot info */}
         {currentBot && (
-          <div className="s2-left">
+          <div key={animKey} className="s2-left">
             <div className="s2-bot-row">
               <div className="s2-bot-icon">
                 {currentBot.icon
@@ -484,50 +688,15 @@ export default function Home() {
       <section className="scene scene-projects">
         <div className="sc-label">
           <div className="sc-label-line" />
-          <div className="sc-label-text">精選專案</div>
+          <div className="sc-label-text">我的專案</div>
         </div>
         <div className="sc-counter">03 / 04</div>
 
+        <div className="s3-ghost">PROJECTS</div>
+
         <div className="s3-inner">
-          <div className="s3-repos">
-            {projectRepos.length > 0
-              ? projectRepos.map((repo, idx) => (
-                  <a
-                    key={repo.id}
-                    href={repo.html_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="s3-repo"
-                    style={{
-                      '--lang-color': getLangColor(repo.language),
-                      animationDelay: `${idx * 70}ms`,
-                    } as React.CSSProperties}
-                  >
-                    <div className="s3-repo-top">
-                      <div className="s3-repo-name">{repo.name}</div>
-                      {repo.stargazers_count > 0 && (
-                        <div className="s3-repo-stars">★ {repo.stargazers_count}</div>
-                      )}
-                    </div>
-                    <div className="s3-repo-desc">
-                      {repo.description || '暫無描述'}
-                    </div>
-                    <div className="s3-repo-footer">
-                      <div
-                        className="s3-lang-dot"
-                        style={{ backgroundColor: getLangColor(repo.language) }}
-                      />
-                      {repo.language ?? 'Other'}
-                    </div>
-                  </a>
-                ))
-              : Array.from({ length: 4 }).map((_, i) => (
-                  <div key={i} className="s3-repo" style={{ '--lang-color': '#333' } as React.CSSProperties}>
-                    <div className="s3-repo-name" style={{ background: '#1a1a1a', height: 14, borderRadius: 4 }} />
-                    <div className="s3-repo-desc" style={{ background: '#161616', height: 32, borderRadius: 4, marginTop: 4 }} />
-                  </div>
-                ))}
-          </div>
+          <div className="s3-heading">專案<span>.</span></div>
+          <RepoMasonry repos={projectRepos} />
         </div>
       </section>
 

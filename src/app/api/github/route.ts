@@ -46,8 +46,16 @@ export async function GET() {
     const combinedRepos = results
       .flat()
       .filter((repo) => repo && repo.name && !repo.fork)
-      // Sort by stars descending as a default
-      .sort((a, b) => b.stargazers_count - a.stargazers_count);
+      .sort((a, b) => b.stargazers_count - a.stargazers_count)
+      .map((repo) => ({
+        id: repo.id,
+        name: repo.name,
+        description: repo.description,
+        stargazers_count: repo.stargazers_count,
+        language: repo.language,
+        html_url: repo.html_url,
+        owner_login: repo.owner?.login as string | undefined,
+      }));
 
     return NextResponse.json({
       user: userData,

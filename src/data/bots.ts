@@ -30,9 +30,14 @@ export interface BotDemoField {
 }
 
 export interface BotDemoEmbed {
+  author?: { name: string; iconUrl?: string };
   title: string;
   description: string;
+  thumbnail?: string;
   fields: BotDemoField[];
+  image?: string;
+  footer?: string;
+  color?: string;
 }
 
 export interface BotDemoRound {
@@ -87,32 +92,20 @@ export const BOTS_DATA: BotData[] = [
       channelName: 'endfield-bot-demo',
       rounds: [
         {
-          userCommand: '/daily status',
-          botEmbed: {
-            title: '✅ 今日簽到完成',
-            description: '您的帳號已成功完成今日簽到',
-            fields: [
-              { name: '獎勵', value: '合成玉 × 60' },
-              { name: '連續天數', value: '14 天' },
-              { name: '下次簽到', value: '明日 08:00' },
-            ],
-          },
+          userCommand: '/daily claim',
+          botImageUrl: "bots/endfield/daily.png",
         },
         {
           userCommand: '/news latest',
           botEmbed: {
-            title: '📰 最新公告',
-            description: '版本 1.2 前瞻直播公告',
-            fields: [
-              { name: '日期', value: '2026/04/20' },
-              { name: '獎勵碼', value: '直播期間公開' },
-            ],
+            title: '「春曉時」版本更新維護預告',
+            description: '「春曉時」版本更新維護預告親愛的管理員： 《明日方舟：終末地》計劃將於2026年4月17日 06:00 (UTC+8)開始對遊戲用戶端進行版本更新停機維護，維護完成後將更新至全新版本「春曉時」。\n本次更新為強制更新，更新維護期間您將無法登入遊戲，請您留意並妥善安排遊戲時間。更新結束後，需要重新下載遊戲資源。由於資源量較大，建議管理員在穩定的網路或Wi-Fi環境下載。\n▼//維護時間\nAsia伺服器：2026/04/17 06:00 ~ 2026/04/17 12:00 (UTC+8)\nAmericas / Europe伺服器：2026/04/16 17:00 ~ 2026/04/16 23:00 (UTC-5)',
+            fields: [],
+            image: "bots/endfield/news.png",
           },
         },
-        { userCommand: '/daily claim', botImageUrl: 'bots/endfield/daily-check.png' },
         { userCommand: '/profile', botImageUrl: ['bots/endfield/profile.webp', 'bots/endfield/profile-char.webp'] },
         { userCommand: '/gacha', botImageUrl: 'bots/endfield/gacha.png' },
-        { userCommand: '/news bind', botImageUrl: 'bots/endfield/notify.png' },
       ],
     },
     categories: [
@@ -261,97 +254,13 @@ export const BOTS_DATA: BotData[] = [
     ],
   },
   {
-    id: "animeguess",
-    name: "哈基米角色猜猜吧",
-    icon: "/bots/animeguess/pfp.webp",
-    description:
-      "一個可以讓你在 Discord 上透過 AI 對話猜二次元角色的有趣機器人。機器人會以角色的語氣回覆你，挑戰你的動漫知識！",
-    inviteUrl: "https://discord.com/api/oauth2/authorize?client_id=1130327421111001158&permissions=8&scope=bot%20applications.commands",
-    demo: {
-      channelName: 'animeguess-bot-demo',
-      rounds: [
-        {
-          userCommand: '/stats',
-          botEmbed: {
-            title: '📊 您的個人戰績',
-            description: '挑戰動漫知識，看看你的成績如何！',
-            fields: [
-              { name: '猜對次數', value: '42' },
-              { name: '總場次', value: '58' },
-              { name: '勝率', value: '72.4%' },
-            ],
-          },
-        },
-        {
-          userCommand: '/leaderboard',
-          botEmbed: {
-            title: '🏆 全球排行榜',
-            description: '競爭動漫知識之巔！',
-            fields: [
-              { name: '# 1', value: 'Yeci — 勝率 89%' },
-              { name: '# 2', value: 'Arona — 勝率 82%' },
-              { name: '# 3', value: 'Himari — 勝率 75%' },
-            ],
-          },
-        },
-      ],
-    },
-    categories: [
-      {
-        name: "使用手冊 (README)",
-        commands: [
-          {
-            name: "🎮 二次元角色猜猜吧 | 挑戰您的動漫知識",
-            description: `歡迎挑戰！這是一個結合 AI 角色扮演與問答的有趣遊戲。
-            
-## 🚀 如何啟動遊戲
-- **直接互動**：只需在頻道中 **@機器人 <要說的話>**。
-- **隨機召喚**：機器人會隨機化身為一名動漫角色，並以其獨有的語氣回覆您。
-
-## 🔍 遊戲規則與數據
-- **判斷與提示**：當您在對話中打出正確的角色名稱，機器人會判定您獲勝！
-- **全球競爭**：透過 \`/stats\` 查看您的勝率與紀錄，並在 \`/leaderboard\` 挑戰全球排名。`,
-            images: [],
-            links: [
-              {
-                label: "邀請機器人",
-                url: "https://discord.com/api/oauth2/authorize?client_id=1130327421111001158&permissions=8&scope=bot%20applications.commands",
-              },
-              {
-                label: "加入支持伺服器",
-                url: "https://discord.gg/mPCEATJDve",
-                secondary: true,
-              },
-            ],
-          },
-        ],
-      },
-      {
-        name: "數據查詢",
-        commands: [
-          {
-            name: "/stats",
-            usage: "/stats",
-            description:
-              "查看您個人的遊戲統計數據，包含猜對次數、總遊戲次數、勝率以及最近猜對的角色清單。",
-          },
-          {
-            name: "/leaderboard",
-            usage: "/leaderboard",
-            description: "查看全局排名與伺服器排名，競爭動漫知識之巔！",
-          },
-        ],
-      },
-    ],
-  },
-  {
     id: "ba-discord-bot",
     name: "Arona",
     icon: "/bots/ba/pfp.png",
     banner: "/bots/ba/banner.png",
     description:
       "專為《蔚藍檔案》玩家設計的 Discord 工具，提供學生資料查詢、模擬抽卡及新聞推播功能。",
-    inviteUrl: "https://discord.com/api/oauth2/authorize?client_id=1028212108740923412&permissions=8&scope=bot%20applications.commands",
+    inviteUrl: "https://discord.com/oauth2/authorize?client_id=985527578188210296",
     demo: {
       channelName: 'ba-bot-demo',
       rounds: [
@@ -359,7 +268,14 @@ export const BOTS_DATA: BotData[] = [
         { userCommand: '/builder', botImageUrl: 'bots/ba/teambuild.png' },
         { userCommand: '/gacha pull', botImageUrl: 'bots/ba/pull.png' },
         { userCommand: '/gacha', botImageUrl: 'bots/ba/gacha.png' },
-        { userCommand: '/notification setup', botImageUrl: 'bots/ba/notify.png' },
+        { userCommand: '/notification setup', 
+          botEmbed: {
+            title: '▎4/7 (二) 特選招募公告',
+            description: '📣啊..啊..!! 夏萊行政室帶來了活動消息~\n\n\n以下是4月7日(二)維護後，開啟的貴音、八雲、愛瑠&紅葉、實里、時雨(溫泉)、茜香(泳裝)的特選招募說明！\n\n請各位老師要好好把握，在特選期間招募到想要的學生喔！\n\n[4月7日(二)特選招募]\n\n* 特選招募期間：4月7日(二)維護後 ~ 4**月21日(二)上午9點59分**\n\n各個特選招募套用對應學生的特選招募機率。',
+            fields: [],
+            image: "bots/ba/news.png",
+          } 
+        },
       ],
     },
     categories: [
@@ -598,7 +514,14 @@ export const BOTS_DATA: BotData[] = [
     demo: {
       channelName: 'ff14-bot-demo',
       rounds: [
-        { userCommand: '/news bind', botImageUrl: 'bots/ff14/notify.png' },
+        { userCommand: '/news bind', 
+          botEmbed: {
+            title: '冒險領航員社群活動',
+            description: '親愛的光之戰士，您好\n隨著FINAL FANTASY XIV 繁體中文版免費試玩功能即將開放，\n艾奧傑亞將迎來許多嶄新的冒險者。\n為促進玩家間的交流與互動，我們特別舉辦「冒險領航員」活動，\n邀請資深冒險家與初心者一同分享自己的冒險者銘牌，\n在社群中尋找屬於你的冒險夥伴。',
+            fields: [],
+            image: "bots/ff14/news.png",
+          }
+         },
       ],
     },
     categories: [
@@ -1555,7 +1478,7 @@ export const BOTS_DATA: BotData[] = [
     banner: "/bots/outo/banner.png",
     description:
       "專注於問答遊戲與測驗的實體機器人，包含詞庫管理、自動化 Quiz 邏輯與歷史戰績紀錄。",
-    inviteUrl: "https://discord.com/oauth2/authorize?client_id=1369294751618039808",
+    inviteUrl: "https://discord.com/oauth2/authorize?client_id=998462106250784888&permissions=137439283264&scope=bot+applications.commands",
     demo: {
       channelName: 'outo-bot-demo',
       rounds: [
