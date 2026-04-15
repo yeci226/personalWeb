@@ -82,6 +82,7 @@ export const BOTS_DATA: BotData[] = [
     banner: "/bots/endfield/banner.jpg",
     description:
       "為《明日方舟：終末地》玩家提供的便捷工具，包含自動簽到、角色查詢及新聞推播。",
+    inviteUrl: "https://discord.com/oauth2/authorize?client_id=1463410818791116831",
     demo: {
       channelName: 'endfield-bot-demo',
       rounds: [
@@ -108,6 +109,10 @@ export const BOTS_DATA: BotData[] = [
             ],
           },
         },
+        { userCommand: '/daily claim', botImageUrl: 'bots/endfield/daily-check.png' },
+        { userCommand: '/profile', botImageUrl: ['bots/endfield/profile.webp', 'bots/endfield/profile-char.webp'] },
+        { userCommand: '/gacha', botImageUrl: 'bots/endfield/gacha.png' },
+        { userCommand: '/news bind', botImageUrl: 'bots/endfield/notify.png' },
       ],
     },
     categories: [
