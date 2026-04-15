@@ -1185,6 +1185,16 @@ export const BOTS_DATA: BotData[] = [
     banner: "/bots/nikke/banner.png",
     description:
       "《勝利女神：妮姬》專業助手，包含角色數值查詢、隊伍模擬、自動化提醒與伺服器公告。",
+    inviteUrl: "https://discord.com/oauth2/authorize?client_id=1368793547133816903",
+    demo: {
+      channelName: 'nikke-bot-demo',
+      rounds: [
+        { userCommand: '/character', botImageUrl: ['bots/nikke/profile-char.png', 'bots/nikke/profile-all.png'] },
+        { userCommand: '/team build', botImageUrl: 'bots/nikke/teambuild.png' },
+        { userCommand: '/profile', botImageUrl: 'bots/nikke/profile.png' },
+        { userCommand: '/notification setup', botImageUrl: 'bots/nikke/notify.png' },
+      ],
+    },
     categories: [
       {
         name: "使用手冊 (README)",
