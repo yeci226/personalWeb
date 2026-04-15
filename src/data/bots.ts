@@ -346,6 +346,17 @@ export const BOTS_DATA: BotData[] = [
     banner: "/bots/ba/banner.png",
     description:
       "專為《蔚藍檔案》玩家設計的 Discord 工具，提供學生資料查詢、模擬抽卡及新聞推播功能。",
+    inviteUrl: "https://discord.com/api/oauth2/authorize?client_id=1028212108740923412&permissions=8&scope=bot%20applications.commands",
+    demo: {
+      channelName: 'ba-bot-demo',
+      rounds: [
+        { userCommand: '/student', botImageUrl: 'bots/ba/student.png' },
+        { userCommand: '/builder', botImageUrl: 'bots/ba/teambuild.png' },
+        { userCommand: '/gacha pull', botImageUrl: 'bots/ba/pull.png' },
+        { userCommand: '/gacha', botImageUrl: 'bots/ba/gacha.png' },
+        { userCommand: '/notification setup', botImageUrl: 'bots/ba/notify.png' },
+      ],
+    },
     categories: [
       {
         name: "使用手冊 (README)",
