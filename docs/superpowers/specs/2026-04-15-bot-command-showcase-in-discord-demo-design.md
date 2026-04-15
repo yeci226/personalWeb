@@ -1,11 +1,11 @@
 # Bot Command Showcase in Discord Demo — Design Spec
 
 **Date:** 2026-04-15  
-**Status:** Approved
+**Status:** Approved (updated)
 
 ## Goal
 
-Move all bot command showcases from the standalone `/bots` page into the homepage's Discord chat simulation (Scene 2). Remove the `/bots` page entirely once all content is migrated.
+Add `demo` data for every bot in `bots.ts` so the homepage Discord chat simulation showcases each bot's commands. Remove the `/bots` standalone page once migration is complete.
 
 ## Data Layer — `src/data/bots.ts`
 
@@ -17,55 +17,88 @@ Move all bot command showcases from the standalone `/bots` page into the homepag
 export interface BotDemoRound {
   userCommand: string;
   botEmbed?: BotDemoEmbed;
-  botImageUrl?: string | string[];  // single or carousel
+  botImageUrl?: string | string[];  // single or multi-image carousel
   botText?: string;
 }
 ```
 
-### New rounds per bot
+### SHOWCASE_BOTS filter change
 
-Each command that has at least one screenshot gets a new `BotDemoRound`. Multi-image commands pass an array.
+`page.tsx` currently filters to only bots that have `demo`:
 
-| Bot | New rounds (userCommand → images) |
+```ts
+const SHOWCASE_BOTS = BOTS_DATA.filter((b) => b.demo).slice(0, 3);
+```
+
+Change to include all bots (no filter, no slice):
+
+```ts
+const SHOWCASE_BOTS = BOTS_DATA;
+```
+
+### Rounds per bot
+
+All 9 bots need `demo` data. Bots that already have `demo` get new rounds appended; the rest get a new `demo` object created.
+
+#### Bots with image rounds
+
+| Bot | userCommand → image(s) |
 |---|---|
-| HSR 星鐵小助手 | `/daily`, `/note`, `/memory` (3 imgs), `/profile` (2 imgs), `/leaderboard`, `/warp log`, `/warp simulator`, `/atlas character` |
-| ZZZ 以色列 | `/note`, `/profile` (2 imgs), `/shiyudefense`, `/deadlyassault`, `/signal-log` |
-| 終末地小助手 | `/daily claim`, `/profile` (2 imgs), `/gacha`, `/news bind` |
-| BA 彩奈 | `/student`, `/builder`, `/gacha pull`, `/gacha`, `/notification` |
-| FFXIV | `/news bind` |
+| HSR 星鐵小助手 *(existing demo, append)* | `/daily` → daily.png · `/note` → note.png · `/memory` → [memory.png, story.png, boss.png] · `/profile` → [profile.png, profile-char.png] · `/leaderboard` → leaderboard.png · `/warp log` → warp-log.png · `/warp simulator` → warp-sim.png · `/atlas character` → atlas.png |
+| ZZZ 以色列 *(existing demo, append)* | `/note` → note.png · `/profile` → [profile.png, profile-char.png] · `/shiyudefense` → shiyudefense.png · `/deadlyassault` → deadlyassault.png · `/signal-log` → signal-log.png |
+| 終末地小助手 *(existing demo, append)* | `/daily claim` → daily-check.png · `/profile` → [profile.webp, profile-char.webp] · `/gacha` → gacha.png · `/news bind` → notify.png |
+| BA Arona *(new demo)* | `/student` → student.png · `/builder` → teambuild.png · `/gacha pull` → pull.png · `/gacha` → gacha.png · `/notification setup` → notify.png |
+| FFXIV 塔塔露 *(new demo)* | `/news bind` → notify.png |
+| NIKKE Shifty *(new demo)* | `/character` → [profile-char.png, profile-all.png] · `/team build` → teambuild.png · `/profile` → profile.png · `/notification setup` → notify.png |
 
-Existing `demo.rounds` (embed-based rounds) are kept; new image rounds are appended after them.
+#### Bots without images — embed-based rounds
+
+For bots with no screenshots, create `botEmbed` rounds that describe capabilities:
+
+| Bot | Rounds |
+|---|---|
+| animeguess *(new demo)* | `/stats` → embed (猜對次數, 勝率, 最近猜對角色) · `/leaderboard` → embed (排行榜) |
+| Haneko *(new demo)* | `/nhentai search` → botText 說明 · `/list` → embed (收藏列表示意) |
+| Outo *(new demo)* | `/quiz` → embed (題目生成說明) · `/add` → embed (新增詞彙示意) |
+
+Each new bot gets a `channelName` matching pattern `<bot-id>-bot-demo`.
 
 ## UI Layer — `src/app/page.tsx`
 
 ### Image carousel in `DiscordChat`
 
-When a bot message has `botImageUrl` as an array with more than one item, render a carousel instead of a plain `<img>`:
+When `botImageUrl` is `string[]` with length > 1, render a carousel:
 
 - Left `‹` / Right `›` arrow buttons overlaid on the image
-- Auto-advances every **2.5 seconds**, loops infinitely
-- Dot indicators below the image (same style as lightbox dots in `globals.css`)
-- Auto-advance resets when the user manually clicks an arrow
-- Clicking the image still opens the lightbox (showing all images with arrow navigation)
+- Auto-advances every **2.5 seconds**, loops infinitely, resets timer on manual click
+- Dot indicators below the image (reuse `.lightbox-dot` style from `globals.css`)
+- Clicking the image still opens the lightbox (all images in the array, same arrow navigation)
+- Single string `botImageUrl` remains unchanged (plain image)
 
-When `botImageUrl` is a single string, behavior is unchanged (plain image, click to enlarge).
+### Scene 2 button change
 
-### Scene 2 button update
+Remove the "指令列表" `Link` that points to `/bots`. Keep the "邀請至伺服器" button; update its `href` to each bot's actual invite URL (first link in its README category with label `"邀請機器人"`). Add an `inviteUrl` field to `BotData` to make this easy to access:
 
-The "指令列表" `Link` that currently points to `/bots` is removed. The "邀請至伺服器" button is updated to use each bot's actual invite URL from `bots.ts` (first link in the README category that has label "邀請機器人").
+```ts
+export interface BotData {
+  // ...existing fields...
+  inviteUrl?: string;
+}
+```
 
 ## Deletions
 
 | Path | Reason |
 |---|---|
-| `src/app/bots/` (entire dir) | Page no longer needed |
+| `src/app/bots/` (entire directory) | Page no longer needed |
 | `src/components/BotsShowcase.tsx` | Component no longer used |
-| `src/components/bots.css` | Styles no longer needed |
+| `src/components/bots.css` | Styles no longer needed (lightbox already in globals.css) |
 
-> Note: lightbox CSS was already moved to `globals.css` in a prior change; `bots.css` only contains a comment pointing there.
+## Implementation order
 
-## Out of scope
-
-- Commands without images (description/embed-only commands) are not added as rounds
-- No API-fetched or dynamic command data in the demo
-- NIKKE bot is not included (no image commands identified in current data)
+1. Update types (`BotDemoRound.botImageUrl`, add `BotData.inviteUrl`)
+2. Add `inviteUrl` to all bot entries + add `demo` data for the 6 bots that lack it + append image rounds to 3 existing demos
+3. Update `SHOWCASE_BOTS` to include all bots
+4. Add carousel UI + auto-advance logic to `DiscordChat`
+5. Update Scene 2 invite button to use `bot.inviteUrl`
+6. Delete `/bots` page, `BotsShowcase.tsx`, `bots.css`
