@@ -261,6 +261,36 @@ export const BOTS_DATA: BotData[] = [
     icon: "/bots/animeguess/pfp.webp",
     description:
       "一個可以讓你在 Discord 上透過 AI 對話猜二次元角色的有趣機器人。機器人會以角色的語氣回覆你，挑戰你的動漫知識！",
+    inviteUrl: "https://discord.com/api/oauth2/authorize?client_id=1130327421111001158&permissions=8&scope=bot%20applications.commands",
+    demo: {
+      channelName: 'animeguess-bot-demo',
+      rounds: [
+        {
+          userCommand: '/stats',
+          botEmbed: {
+            title: '📊 您的個人戰績',
+            description: '挑戰動漫知識，看看你的成績如何！',
+            fields: [
+              { name: '猜對次數', value: '42' },
+              { name: '總場次', value: '58' },
+              { name: '勝率', value: '72.4%' },
+            ],
+          },
+        },
+        {
+          userCommand: '/leaderboard',
+          botEmbed: {
+            title: '🏆 全球排行榜',
+            description: '競爭動漫知識之巔！',
+            fields: [
+              { name: '# 1', value: 'Yeci — 勝率 89%' },
+              { name: '# 2', value: 'Arona — 勝率 82%' },
+              { name: '# 3', value: 'Himari — 勝率 75%' },
+            ],
+          },
+        },
+      ],
+    },
     categories: [
       {
         name: "使用手冊 (README)",
