@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useRef, useCallback, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import FloatingGif from '@/components/FloatingGif';
 import { BOTS_DATA, BotData, BotDemoEmbed } from '@/data/bots';
@@ -37,14 +38,119 @@ const SHOWCASE_BOTS: BotData[] = BOTS_DATA.filter((b) => b.demo).slice(0, 3);
 const DEMO_USER = { name: 'Yeci', color: '#5865F2', avatarUrl: '96086308fc5a5a9b2a872a2d233de95a.webp' };
 
 // ── DiscordChat component ──────────────────────────
+function PageLightbox({
+  images,
+  startIndex,
+  onClose,
+}: {
+  images: string[];
+  startIndex: number;
+  onClose: () => void;
+}) {
+  const [current, setCurrent] = useState(startIndex);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+      if (e.key === 'ArrowRight') setCurrent((i) => (i + 1) % images.length);
+      if (e.key === 'ArrowLeft') setCurrent((i) => (i - 1 + images.length) % images.length);
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [images.length, onClose]);
+
+  return (
+    <div className="lightbox-backdrop" onClick={onClose}>
+      <div className="lightbox-content" onClick={(e) => e.stopPropagation()}>
+        <button className="lightbox-close" onClick={onClose}>×</button>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={images[current]} alt="" className="lightbox-img" />
+        {images.length > 1 && (
+          <>
+            <button className="lightbox-arrow left" onClick={() => setCurrent((i) => (i - 1 + images.length) % images.length)}>‹</button>
+            <button className="lightbox-arrow right" onClick={() => setCurrent((i) => (i + 1) % images.length)}>›</button>
+            <div className="lightbox-dots">
+              {images.map((_, i) => (
+                <span
+                  key={i}
+                  className={`lightbox-dot${i === current ? ' active' : ''}`}
+                  onClick={() => setCurrent(i)}
+                />
+              ))}
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function BotImageCarousel({
+  images,
+  onClickImage,
+}: {
+  images: string[];
+  onClickImage: (index: number) => void;
+}) {
+  const [current, setCurrent] = useState(0);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const resetTimer = useCallback(() => {
+    if (timerRef.current) clearInterval(timerRef.current);
+    timerRef.current = setInterval(() => {
+      setCurrent((i) => (i + 1) % images.length);
+    }, 2500);
+  }, [images.length]);
+
+  useEffect(() => {
+    resetTimer();
+    return () => { if (timerRef.current) clearInterval(timerRef.current); };
+  }, [resetTimer]);
+
+  const go = (idx: number) => {
+    setCurrent(idx);
+    resetTimer();
+  };
+
+  return (
+    <div className="dc-carousel">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={images[current]}
+        alt=""
+        className="dc-bot-image dc-embed-appear clickable"
+        onClick={() => onClickImage(current)}
+      />
+      <button className="dc-carousel-arrow left" onClick={() => go((current - 1 + images.length) % images.length)}>‹</button>
+      <button className="dc-carousel-arrow right" onClick={() => go((current + 1) % images.length)}>›</button>
+      <div className="dc-carousel-dots">
+        {images.map((_, i) => (
+          <span
+            key={i}
+            className={`lightbox-dot${i === current ? ' active' : ''}`}
+            onClick={() => go(i)}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 type ChatMsg =
   | { type: 'user'; text: string }
-  | { type: 'bot'; botEmbed?: BotDemoEmbed; botImageUrl?: string; botText?: string; thinking: boolean; replyTo: string };
+  | { type: 'bot'; botEmbed?: BotDemoEmbed; botImageUrl?: string | string[]; botText?: string; thinking: boolean; replyTo: string };
 
 function DiscordChat({ bot, animKey }: { bot: BotData; animKey: number }) {
   const [messages, setMessages] = useState<ChatMsg[]>([]);
   const [inputText, setInputText] = useState('');
   const messagesRef = useRef<HTMLDivElement>(null);
+  const [lightboxImages, setLightboxImages] = useState<string[] | null>(null);
+  const [lightboxStartIndex, setLightboxStartIndex] = useState(0);
+
+  const openLightbox = useCallback((images: string[], index = 0) => {
+    setLightboxImages(images);
+    setLightboxStartIndex(index);
+  }, []);
 
   useEffect(() => {
     setMessages([]);
@@ -167,8 +273,26 @@ function DiscordChat({ bot, animKey }: { bot: BotData; animKey: number }) {
                       <span className="dc-thinking-label">{bot.name} 正在思考...</span>
                     </div>
                   ) : msg.botImageUrl ? (
-                    /* eslint-disable-next-line @next/next/no-img-element */
-                    <img src={msg.botImageUrl} alt="" className="dc-bot-image dc-embed-appear" />
+                    (() => {
+                      const imgs = Array.isArray(msg.botImageUrl) ? msg.botImageUrl : [msg.botImageUrl];
+                      if (imgs.length === 1) {
+                        return (
+                          /* eslint-disable-next-line @next/next/no-img-element */
+                          <img
+                            src={imgs[0]}
+                            alt=""
+                            className="dc-bot-image dc-embed-appear clickable"
+                            onClick={() => openLightbox(imgs, 0)}
+                          />
+                        );
+                      }
+                      return (
+                        <BotImageCarousel
+                          images={imgs}
+                          onClickImage={(idx) => openLightbox(imgs, idx)}
+                        />
+                      );
+                    })()
                   ) : msg.botText ? (
                     <div className="dc-text dc-embed-appear">{msg.botText}</div>
                   ) : msg.botEmbed ? (
@@ -200,6 +324,15 @@ function DiscordChat({ bot, animKey }: { bot: BotData; animKey: number }) {
           }
         </div>
       </div>
+
+      {lightboxImages && createPortal(
+        <PageLightbox
+          images={lightboxImages}
+          startIndex={lightboxStartIndex}
+          onClose={() => setLightboxImages(null)}
+        />,
+        document.body
+      )}
     </div>
   );
 }
