@@ -31,7 +31,7 @@ function getLangColor(lang: string | null): string {
 }
 
 // ── Showcase bots (only those with demo data) ──────
-const SHOWCASE_BOTS: BotData[] = BOTS_DATA.filter((b) => b.demo).slice(0, 3);
+const SHOWCASE_BOTS: BotData[] = BOTS_DATA;
 
 // ── Discord demo user config ─────
 // Customize name / color / optional avatar image once; reused everywhere
@@ -444,8 +444,11 @@ export default function Home() {
             <p className="s2-desc">{currentBot.description}</p>
 
             <div className="s2-btns">
-              <Link href="/bots" className="s2-btn-primary">邀請至伺服器</Link>
-              <Link href="/bots" className="s2-btn-ghost">指令列表</Link>
+              {currentBot?.inviteUrl && (
+                <a href={currentBot.inviteUrl} target="_blank" rel="noopener noreferrer" className="s2-btn-primary">
+                  邀請至伺服器
+                </a>
+              )}
             </div>
           </div>
         )}
