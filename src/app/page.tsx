@@ -443,6 +443,7 @@ function ProjectBento({ repos }: { repos: Repo[] }) {
                   <div className="s3-bento-bg">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img 
+                      key={currentUrl}
                       src={currentUrl} 
                       alt="" 
                       onError={() => {
@@ -612,8 +613,12 @@ export default function Home() {
       const imgs = [
         `/projects/${r.name}.png`, 
         `/projects/${lowerName}.png`, 
+        `/projects/${r.name}.PNG`, 
+        `/projects/${lowerName}.PNG`, 
         `/projects/${r.name}.jpg`, 
         `/projects/${lowerName}.jpg`, 
+        `/projects/${r.name}.JPG`, 
+        `/projects/${lowerName}.JPG`, 
         `/projects/${r.name}.jpeg`,
         `/projects/${lowerName}.jpeg`
       ]; 
