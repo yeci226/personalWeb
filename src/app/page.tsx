@@ -15,6 +15,8 @@ interface Repo {
   language: string | null;
   html_url: string;
   owner_login?: string;
+  imageUrl?: string | string[];
+  note?: string; // 允許自訂備註
 }
 
 function getLangColor(lang: string | null): string {
@@ -393,110 +395,69 @@ function DiscordChat({ bot, animKey }: { bot: BotData; animKey: number }) {
 // ── Bot IDs for filtering projects ─────────────────
 const BOT_IDS = new Set(BOTS_DATA.map((b) => b.id.toLowerCase()));
 
-// ── RepoMasonry — pretext + star-weighted sizing ────
-// Tier 1 (≥5★): double-wide card, large typography
-// Tier 2 (1-4★): standard single-column card
-// Tier 3 (0★):  compact single-column card
-type RepoTier = 1 | 2 | 3;
-
-const TIER_CFG = {
-  1: { span: 2, nf: '700 18px system-ui,sans-serif', nlh: 24, df: '13px system-ui,sans-serif', dlh: 19, px: 20, py: 18, fh: 24 },
-  2: { span: 1, nf: '700 13px system-ui,sans-serif', nlh: 20, df: '11px system-ui,sans-serif', dlh: 17, px: 18, py: 16, fh: 22 },
-  3: { span: 1, nf: '700 12px system-ui,sans-serif', nlh: 18, df: '10.5px system-ui,sans-serif', dlh: 16, px: 16, py: 13, fh: 20 },
-} as const;
-
-function getRepoTier(stars: number): RepoTier {
-  if (stars >= 5) return 1;
-  if (stars >= 1) return 2;
-  return 3;
-}
-
-function RepoMasonry({ repos }: { repos: Repo[] }) {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [state, setState] = useState<{
-    positions: Array<{ x: number; y: number; w: number; tier: RepoTier; delay: number }>;
-    totalH: number;
-  } | null>(null);
+// ── Project Bento Grid ─────────────────────────────
+function ProjectBento({ repos }: { repos: Repo[] }) {
+  const [mounted, setMounted] = useState(false);
+  const [failedImages, setFailedImages] = useState<Set<string>>(new Set());
+  const [imageIndex, setImageIndex] = useState<Record<string, number>>({});
 
   useEffect(() => {
-    const el = containerRef.current;
-    if (!el || !repos.length) return;
-    let cancelled = false;
+    setMounted(true);
+  }, []);
 
-    import('@chenglou/pretext').then(({ prepare, layout: ptLayout }) => {
-      if (cancelled) return;
-      const W = el.clientWidth;
-      const COLS = 3, GAP = 12;
-      const cw = Math.floor((W - GAP * (COLS - 1)) / COLS);
-      const colH = [0, 0, 0];
-
-      const positions = repos.map((repo) => {
-        const tier = getRepoTier(repo.stargazers_count);
-        const cfg = TIER_CFG[tier];
-        const span = cfg.span;
-        const cardW = span === 2 ? 2 * cw + GAP : cw;
-        const TW = cardW - 2 * cfg.px;
-
-        const { height: nameH } = ptLayout(prepare(repo.name, cfg.nf), TW, cfg.nlh);
-        const { height: descH } = ptLayout(prepare(repo.description ?? '暫無描述', cfg.df), TW, cfg.dlh);
-        const h = 2 * cfg.py + nameH + 6 + descH + 8 + cfg.fh;
-
-        let col: number, y: number;
-        if (span === 1) {
-          col = colH.indexOf(Math.min(...colH));
-          y = colH[col];
-          colH[col] += h + GAP;
-        } else {
-          // Find the 2-column window with lowest max height
-          let bestStart = 0;
-          let bestY = Math.max(colH[0], colH[1]);
-          for (let i = 1; i <= COLS - span; i++) {
-            const candidateY = Math.max(...colH.slice(i, i + span));
-            if (candidateY < bestY) { bestY = candidateY; bestStart = i; }
-          }
-          col = bestStart;
-          y = bestY;
-          for (let i = col; i < col + span; i++) colH[i] = y + h + GAP;
-        }
-
-        return { x: col * (cw + GAP), y, w: cardW, tier };
-      });
-
-      const maxY = Math.max(...positions.map((p) => p.y), 1);
-      setState({
-        positions: positions.map((p) => ({
-          ...p,
-          delay: Math.round((p.y / maxY) * 400),
-        })),
-        totalH: Math.max(...colH),
-      });
-    });
-
-    return () => { cancelled = true; };
-  }, [repos]);
+  const handleMouseMove = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    const el = e.currentTarget;
+    const rect = el.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    el.style.setProperty('--mouse-x', `${x}px`);
+    el.style.setProperty('--mouse-y', `${y}px`);
+  };
 
   return (
-    <div ref={containerRef} className={`s3-masonry${state ? ' s3-masonry-ready' : ''}`}>
-      <div style={{ position: 'relative', height: state?.totalH }}>
-        {state
-          ? repos.map((repo, idx) => {
-              const pos = state.positions[idx];
-              return (
-                <a
-                  key={repo.id}
-                  href={repo.html_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={`s3-repo tier-${pos.tier}`}
-                  style={{
-                    position: 'absolute',
-                    left: pos.x,
-                    top: pos.y,
-                    width: pos.w,
-                    '--lang-color': getLangColor(repo.language),
-                    animationDelay: `${pos.delay}ms`,
-                  } as React.CSSProperties}
-                >
+    <div className={`s3-bento${mounted ? ' s3-bento-ready' : ''}`}>
+      {repos.length > 0
+        ? repos.map((repo, idx) => {
+            const urls = Array.isArray(repo.imageUrl) ? repo.imageUrl : (repo.imageUrl ? [repo.imageUrl] : []);
+            const currentIndex = imageIndex[repo.name] || 0;
+            const currentUrl = urls[currentIndex];
+
+            const hasImage = !!currentUrl && !failedImages.has(repo.name);
+            const isLarge = repo.stargazers_count >= 5 && !hasImage;
+            const sizeClass = hasImage ? 'tier-featured' : isLarge ? 'tier-large' : 'tier-normal';
+
+            return (
+              <a
+                key={repo.id}
+                href={repo.html_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`s3-bento-card ${sizeClass}`}
+                onMouseMove={handleMouseMove}
+                style={{
+                  '--lang-color': getLangColor(repo.language),
+                  animationDelay: `${idx * 40}ms`,
+                } as React.CSSProperties}
+              >
+                {hasImage && currentUrl && (
+                  <div className="s3-bento-bg">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img 
+                      src={currentUrl} 
+                      alt="" 
+                      onError={() => {
+                        if (currentIndex < urls.length - 1) {
+                          setImageIndex(prev => ({ ...prev, [repo.name]: currentIndex + 1 }));
+                        } else {
+                          setFailedImages(prev => new Set(prev).add(repo.name));
+                        }
+                      }} 
+                    />
+                    <div className="s3-bento-bg-overlay" />
+                  </div>
+                )}
+                <div className="s3-bento-border" />
+                <div className={`s3-bento-content ${hasImage ? 'has-img' : ''}`}>
                   <div className="s3-repo-top">
                     <div className="s3-repo-name">
                       {repo.name}
@@ -508,21 +469,40 @@ function RepoMasonry({ repos }: { repos: Repo[] }) {
                       <div className="s3-repo-stars">★ {repo.stargazers_count}</div>
                     )}
                   </div>
-                  <div className="s3-repo-desc">{repo.description ?? '暫無描述'}</div>
+                  <div className="s3-repo-desc">
+                    {repo.description ? (
+                      <>
+                        {repo.description}
+                        {repo.note && (
+                          <>
+                            <br />
+                            <br />
+                            {repo.note}
+                          </>
+                        )}
+                      </>
+                    ) : (
+                      repo.note || '暫無描述'
+                    )}
+                  </div>
+
                   <div className="s3-repo-footer">
                     <div className="s3-lang-dot" style={{ backgroundColor: getLangColor(repo.language) }} />
                     {repo.language ?? 'Other'}
                   </div>
-                </a>
-              );
-            })
-          : Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="s3-repo tier-2" style={{ '--lang-color': '#333' } as React.CSSProperties}>
-                <div className="s3-repo-name" style={{ background: '#1a1a1a', height: 14, borderRadius: 4 }} />
-                <div className="s3-repo-desc" style={{ background: '#161616', height: 32, borderRadius: 4, marginTop: 4 }} />
+                </div>
+              </a>
+            );
+          })
+        : Array.from({ length: 8 }).map((_, i) => (
+            <div key={i} className={`s3-bento-card skeleton ${i === 0 ? 'tier-featured' : i % 4 === 0 ? 'tier-large' : 'tier-normal'}`} style={{ '--lang-color': '#333' } as React.CSSProperties}>
+              <div className="s3-bento-border" />
+              <div className="s3-bento-content">
+                <div className="s3-repo-name" style={{ background: '#1a1a1a', height: 16, borderRadius: 4, width: '40%' }} />
+                <div className="s3-repo-desc" style={{ background: '#161616', height: 32, borderRadius: 4, marginTop: 12, width: '90%' }} />
               </div>
-            ))}
-      </div>
+            </div>
+          ))}
     </div>
   );
 }
@@ -561,13 +541,98 @@ export default function Home() {
       .catch((err) => console.error('[GitHub fetch]', err));
   }, []);
 
-  // Filter out bot repos from projects scene
-  const projectRepos = useMemo(
-    () => repos.slice(0, 20).map((r) =>
-      BOT_IDS.has(r.name.toLowerCase()) ? { ...r, language: null } : r,
-    ),
-    [repos],
-  );
+  // 您可以在這裡為特定的 GitHub 專案加上「自訂備註」
+  const REPO_NOTES: Record<string, string> = {
+    // 範例：
+    "YecisPlayground": "我的舊版個人網站，展示了我早期的專案和一些實驗性作品",
+    "personalWeb": "你現在看到的這個網站！展示我的專案和 Discord Bot",
+    "WeForgotBingBong": "遊戲 PEAK 的模組，強制玩家攜帶一個叫做 BingBong 的玩偶，否則所有人都會有負面效果",
+    "big-two": "簡易的線上大老二遊戲",
+    "yeci-bot": "我的第一個 Discord Bot，提供了基本的娛樂和管理功能，已不再維護",
+    "music-discord-bot": "使用 Discord-player 庫開發的音樂播放 Bot，支援多種音樂來源和播放列表功能",
+    "ZZZ": "提供絕區零玩家專用的遊戲資訊查詢功能，包含角色、裝備等資訊",
+    "ff14": "提供 Final Fantasy XIV 玩家專用的遊戲公告和伺服器狀態查詢功能",
+    "Outo": "一個讓使用者可以設定詞彙，當訊息中包含這些詞彙時，Bot 會自動回覆預設的訊息，適合用來做伺服器內的自動回應或小遊戲", 
+    "discord-anime-guesser": "一個可以讓你在 Discord 上透過AI對話猜二次元角色",
+    "yeci226": "這是我個人 GitHub 的倉庫，裡面包含了我公開的專案和一些實驗性作品，歡迎來看看！",
+    "nikke": "提供勝利女神：妮姬玩家專用的遊戲資訊查詢功能，包含角色、裝備等資訊",
+    "ai-card-mod": "遊戲 Slay The Spire 2 的模組，創建了一個新角色「先知」，透過特殊的啟示和虔誠機制，帶來全新的遊戲體驗",
+    "BA-discord-bot": "提供蔚藍檔案玩家專用的遊戲資訊查詢功能，包含角色、裝備等資訊",
+  };
+
+  // 您可以在這裡新增「非 GitHub」的額外自訂專案
+  const CUSTOM_REPOS: Repo[] = [
+    // 範例：
+    // {
+    //   id: Math.random(), // 隨便給個數字當 ID 即可
+    //   name: '我的私人專案',
+    //   description: '這是我沒有放在 GitHub 上面的專案，可以直接寫在這裡展示。',
+    //   stargazers_count: 10, // 如果設定 5 以上，沒有圖片也會自動變成寬卡片
+    //   language: 'Next.js',
+    //   html_url: 'https://my-private-project.com',
+    //   imageUrl: '/projects/private.png',
+    //   note: '非開源專案',
+    // },
+    {
+      id: Math.random(), 
+      name: 'AET2024',
+      description: '全台灣最大的荒野亂鬥非官方2024年賽事網頁，提供賽事資訊、報名系統和即時比分更新。',
+      stargazers_count: 0, // 如果設定 5 以上，沒有圖片也會自動變成寬卡片
+      language: 'JavaScript',
+      html_url: '',
+      imageUrl: '/projects/aet2024.png',
+    },
+    {
+      id: Math.random(), 
+      name: 'AET2023',
+      description: '全台灣最大的荒野亂鬥非官方2023年賽事網頁，提供賽事資訊',
+      stargazers_count: 0, // 如果設定 5 以上，沒有圖片也會自動變成寬卡片
+      language: 'HTML',
+      html_url: '',
+      imageUrl: '/projects/aet2023.png',
+    }, 
+    {
+      id: Math.random(), 
+      name: '土撥鼠圖書館',
+      description: '簡易的線上圖書館系統，提供帳號系統、書籍瀏覽、借閱和歸還功能。',
+      stargazers_count: 0, // 如果設定 5 以上，沒有圖片也會自動變成寬卡片
+      language: 'TypeScript',
+      html_url: '',
+      imageUrl: '/projects/marmot-library.png',
+    },
+  ];
+
+  // Set up the repos for the projects scene
+  const projectRepos = useMemo(() => {
+    // 1. Process all repos to attach images and remove language for bots
+    const processedRepos: Repo[] = repos.slice(0, 20).map((r) => {
+      const isBot = BOT_IDS.has(r.name.toLowerCase());
+      // 自動嘗試多種副檔名
+      const imgs = [`/projects/${r.name}.png`, `/projects/${r.name}.jpg`, `/projects/${r.name}.jpeg`]; 
+      const customNote = REPO_NOTES[r.name]; // 抓取自訂備註
+      return { 
+        ...r, 
+        language: isBot ? null : r.language, 
+        imageUrl: imgs,
+        note: customNote,
+      };
+    });
+
+    // 2. Find linovelib-reader and move it to the front
+    const linovelibIndex = processedRepos.findIndex(r => r.name === 'linovelib-reader');
+    if (linovelibIndex > -1) {
+      const linovelib = processedRepos.splice(linovelibIndex, 1)[0];
+      // Optional: You can override its name or description if you want it to look like novel.yeci.lol
+      linovelib.name = 'novel.yeci.lol (linovelib-reader)';
+      linovelib.description = '一個專為閱讀輕小說設計的網站，提供流暢的閱讀體驗與優雅的介面設計。';
+      processedRepos.unshift(linovelib);
+    }
+
+    // 3. 附加自訂專案到最後面
+    processedRepos.push(...CUSTOM_REPOS);
+
+    return processedRepos;
+  }, [repos]);
 
   const switchBot = useCallback((idx: number) => {
     setBotIndex(idx);
@@ -696,7 +761,7 @@ export default function Home() {
 
         <div className="s3-inner">
           <div className="s3-heading">專案<span>.</span></div>
-          <RepoMasonry repos={projectRepos} />
+          <ProjectBento repos={projectRepos} />
         </div>
       </section>
 
