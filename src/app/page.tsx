@@ -398,12 +398,32 @@ const BOT_IDS = new Set(BOTS_DATA.map((b) => b.id.toLowerCase()));
 // ── Project Bento Grid ─────────────────────────────
 function ProjectBento({ repos }: { repos: Repo[] }) {
   const [mounted, setMounted] = useState(false);
-  const [failedImages, setFailedImages] = useState<Set<string>>(new Set());
-  const [imageIndex, setImageIndex] = useState<Record<string, number>>({});
+  const [workingImages, setWorkingImages] = useState<Record<string, string>>({});
 
   useEffect(() => {
     setMounted(true);
-  }, []);
+
+    // Background image preloading and fallback logic
+    repos.forEach((repo) => {
+      const urls = Array.isArray(repo.imageUrl) ? repo.imageUrl : (repo.imageUrl ? [repo.imageUrl] : []);
+      if (urls.length === 0) return;
+
+      let i = 0;
+      const tryNext = () => {
+        if (i >= urls.length) return;
+        const img = new window.Image();
+        img.src = urls[i];
+        img.onload = () => {
+          setWorkingImages((prev) => ({ ...prev, [repo.name]: urls[i] }));
+        };
+        img.onerror = () => {
+          i++;
+          tryNext();
+        };
+      };
+      tryNext();
+    });
+  }, [repos]);
 
   const handleMouseMove = (e: React.MouseEvent<HTMLAnchorElement>) => {
     const el = e.currentTarget;
@@ -418,11 +438,8 @@ function ProjectBento({ repos }: { repos: Repo[] }) {
     <div className={`s3-bento${mounted ? ' s3-bento-ready' : ''}`}>
       {repos.length > 0
         ? repos.map((repo, idx) => {
-            const urls = Array.isArray(repo.imageUrl) ? repo.imageUrl : (repo.imageUrl ? [repo.imageUrl] : []);
-            const currentIndex = imageIndex[repo.name] || 0;
-            const currentUrl = urls[currentIndex];
-
-            const hasImage = !!currentUrl && !failedImages.has(repo.name);
+            const currentUrl = workingImages[repo.name];
+            const hasImage = !!currentUrl;
             const isLarge = repo.stargazers_count >= 5 && !hasImage;
             const sizeClass = hasImage ? 'tier-featured' : isLarge ? 'tier-large' : 'tier-normal';
 
@@ -442,18 +459,7 @@ function ProjectBento({ repos }: { repos: Repo[] }) {
                 {hasImage && currentUrl && (
                   <div className="s3-bento-bg">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img 
-                      key={currentUrl}
-                      src={currentUrl} 
-                      alt="" 
-                      onError={() => {
-                        if (currentIndex < urls.length - 1) {
-                          setImageIndex(prev => ({ ...prev, [repo.name]: currentIndex + 1 }));
-                        } else {
-                          setFailedImages(prev => new Set(prev).add(repo.name));
-                        }
-                      }} 
-                    />
+                    <img src={currentUrl} alt="" />
                     <div className="s3-bento-bg-overlay" />
                   </div>
                 )}
