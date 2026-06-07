@@ -607,8 +607,16 @@ export default function Home() {
     // 1. Process all repos to attach images and remove language for bots
     const processedRepos: Repo[] = repos.slice(0, 20).map((r) => {
       const isBot = BOT_IDS.has(r.name.toLowerCase());
-      // 自動嘗試多種副檔名
-      const imgs = [`/projects/${r.name}.png`, `/projects/${r.name}.jpg`, `/projects/${r.name}.jpeg`]; 
+      // 自動嘗試多種副檔名與大小寫（為了解決 Windows 和 Linux(Vercel) 大小寫敏感度不同的問題）
+      const lowerName = r.name.toLowerCase();
+      const imgs = [
+        `/projects/${r.name}.png`, 
+        `/projects/${lowerName}.png`, 
+        `/projects/${r.name}.jpg`, 
+        `/projects/${lowerName}.jpg`, 
+        `/projects/${r.name}.jpeg`,
+        `/projects/${lowerName}.jpeg`
+      ]; 
       const customNote = REPO_NOTES[r.name]; // 抓取自訂備註
       return { 
         ...r, 
